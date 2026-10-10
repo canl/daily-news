@@ -27,17 +27,24 @@ export function selectHeadlines(news: NewsFile, topic: Topic, limit = HEADLINES_
     .slice(0, limit);
 }
 
-/** How often a new summary is written; the hourly build reuses the previous one in between. */
-export const SUMMARY_EVERY_HOURS = 4;
-
 /**
- * True when the previous summary is old enough to replace. A 15-minute allowance keeps a
- * slightly early scheduled run from skipping a whole cycle.
+ * Hours (UTC) after which a new summary is written; the hourly build reuses the previous one in between.
+ * 06:00 UTC is before the London open (08:00) and 17:00 UTC is after the close (16:30), in both
+ * summer (BST) and winter (GMT) time.
  */
-export function summaryDue(previous: SummaryFile | null, now: Date, everyHours = SUMMARY_EVERY_HOURS): boolean {
+export const SUMMARY_HOURS_UTC = [6, 17] as const;
+
+/** The latest summary time at or before now. */
+export function lastSummarySlot(now: Date, hours: readonly number[] = SUMMARY_HOURS_UTC): Date {
+  const day = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const slots = [-1, 0].flatMap((d) => hours.map((h) => day + d * 86_400_000 + h * 3_600_000));
+  return new Date(Math.max(...slots.filter((t) => t <= now.getTime())));
+}
+
+/** True when no summary has been written since the latest summary time. */
+export function summaryDue(previous: SummaryFile | null, now: Date, hours: readonly number[] = SUMMARY_HOURS_UTC): boolean {
   if (!previous) return true;
-  const age = now.getTime() - Date.parse(previous.generatedAt);
-  return !(age < everyHours * 3_600_000 - 15 * 60_000);
+  return Date.parse(previous.generatedAt) < lastSummarySlot(now, hours).getTime();
 }
 
 /** Changes only when the set of headlines the summary would read changes. */
