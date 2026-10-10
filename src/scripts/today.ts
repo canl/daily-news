@@ -9,6 +9,7 @@ const searchRow = document.querySelector<HTMLElement>('[data-search-row]');
 const searchToggle = document.querySelector<HTMLButtonElement>('[data-search-toggle]');
 const status = document.querySelector<HTMLElement>('[data-status]');
 const empty = document.querySelector<HTMLElement>('[data-empty]');
+const briefTopics = [...document.querySelectorAll<HTMLElement>('[data-brief] [data-topic]')];
 
 type Filter = 'topic' | 'region';
 const state = new URLSearchParams(location.search);
@@ -31,6 +32,9 @@ function apply(): void {
     card.hidden = !match;
     if (match) shown++;
   }
+
+  // The brief follows the topic filter only; region and search narrow the story list.
+  for (const block of briefTopics) block.hidden = topic !== 'all' && block.dataset.topic !== topic;
 
   for (const chip of document.querySelectorAll<HTMLButtonElement>('[data-filter]')) {
     chip.setAttribute('aria-pressed', String(current(chip.dataset.filter as Filter) === chip.value));

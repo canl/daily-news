@@ -42,8 +42,13 @@ export interface SummaryBullet {
 }
 
 export interface SummaryFile extends DataFile {
+  /** Empty when no summary could be written for that topic; the site then hides it. */
   finance: SummaryBullet[];
   ai: SummaryBullet[];
+  /** The model that wrote the bullets. */
+  model: string;
+  /** Hash of the headlines the bullets were written from; unchanged headlines skip a new summary. */
+  basedOn: string;
 }
 
 export type InstrumentGroup = 'indices' | 'ai-stocks' | 'fx' | 'commodities-rates' | 'crypto';

@@ -1,0 +1,164 @@
+---
+import { TOPIC_LABELS } from '../lib/labels';
+import { loadSummary } from '../lib/summary-data';
+import type { Story, Topic } from '../lib/types';
+
+/**
+ * The AI-written brief for each topic, with links to the stories each bullet is based on.
+ * Renders nothing when there is no summary; a topic with no bullets is left out.
+ */
+interface Props {
+  stories: Story[];
+}
+
+const { stories } = Astro.props;
+const summary = loadSummary();
+const byId = new Map(stories.map((s) => [s.id, s]));
+const topics = (['finance', 'ai'] as Topic[])
+  .map((topic) => ({
+    topic,
+    bullets: (summary?.[topic] ?? [])
+      .map((b) => ({ text: b.text, sources: b.storyIds.map((id) => byId.get(id)).filter((s): s is Story => s !== undefined) }))
+      .filter((b) => b.sources.length > 0),
+  }))
+  .filter((t) => t.bullets.length > 0);
+---
+
+{
+  summary && topics.length > 0 && (
+    <section class="brief" aria-labelledby="brief-title" data-brief>
+      <details open>
+        <summary>
+          <h2 id="brief-title">Today in brief</h2>
+          <span class="badge">AI-generated summary</span>
+        </summary>
+        {topics.map(({ topic, bullets }) => (
+          <div class="topic" data-topic={topic}>
+            <h3>{TOPIC_LABELS[topic]}</h3>
+            <ul>
+              {bullets.map((b) => (
+                <li>
+                  <p>{b.text}</p>
+                  <p class="sources">
+                    <span class="visually-hidden">Sources:</span>
+                    {b.sources.map((s) => (
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" title={s.title}>
+                        {s.source}
+                      </a>
+                    ))}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <p class="note">
+          Written by Claude from the headlines on this page. It can make mistakes, so check the linked stories.
+        </p>
+      </details>
+    </section>
+  )
+}
+
+<style>
+  .brief {
+    margin-bottom: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 16px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg) translateY(-2px);
+  }
+
+  details[open] summary::after {
+    transform: rotate(-135deg) translateY(-2px);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+
+  .badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .topic {
+    padding: 0 16px;
+  }
+
+  .topic[hidden] {
+    display: none;
+  }
+
+  h3 {
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0 0 0 18px;
+  }
+
+  li p {
+    margin: 8px 0 0;
+    line-height: 1.45;
+  }
+
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 14px;
+    margin: 0 !important;
+    font-size: 0.8125rem;
+  }
+
+  .sources a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--accent);
+  }
+
+  .note {
+    margin: 4px 16px 0;
+    padding: 8px 0 14px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+</style>

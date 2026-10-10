@@ -1,6 +1,6 @@
 name: Data check
 
-# Fetches the real feeds and market prices and reports what loads. Informational: it never blocks a merge.
+# Fetches the real feeds and market prices, writes the AI summary, and reports what loads. Informational: it never blocks a merge.
 on:
   workflow_dispatch:
   pull_request:
@@ -25,6 +25,11 @@ jobs:
       - run: npm run fetch:news 2>&1 | tee news.log
       - run: npm run fetch:markets 2>&1 | tee markets.log
         if: always()
+      # Costs a fraction of a cent. Skips itself when the secret is not available, such as on a fork.
+      - run: npm run fetch:summary 2>&1 | tee summary.log
+        if: always()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       - name: Summary
         if: always()
         run: |
@@ -36,6 +41,10 @@ jobs:
             echo '### Market prices'
             echo '```'
             cat markets.log 2>/dev/null || echo 'did not run'
+            echo '```'
+            echo '### AI summary'
+            echo '```'
+            cat summary.log 2>/dev/null || echo 'did not run'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v5

@@ -16,9 +16,11 @@
     "test:watch": "vitest",
     "fetch:news": "tsx scripts/fetch-news.ts",
     "test:e2e": "playwright test",
-    "fetch:markets": "tsx scripts/fetch-markets.ts"
+    "fetch:markets": "tsx scripts/fetch-markets.ts",
+    "fetch:summary": "tsx scripts/fetch-summary.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
     "astro": "7.3.8",
     "fast-xml-parser": "5.11.2"
   },
