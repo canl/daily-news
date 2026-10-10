@@ -23,7 +23,7 @@ npm run fetch:summary # AI brief from news.json into summary.json (needs ANTHROP
 npm run test:e2e  # Playwright at phone size, built from tests/fixtures/news.sample.json
 ```
 
-Run typecheck, test and build before every commit; CI runs the same three.
+Run typecheck, test and build before every commit; CI runs the same three, plus the browser tests and Lighthouse (`lighthouserc.json`: mobile performance 90+, accessibility 95+).
 
 ## Conventions
 

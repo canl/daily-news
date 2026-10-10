@@ -1,0 +1,18 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npx astro preview --port 4322 --ignore-lock",
+      "startServerReadyPattern": "localhost:4322",
+      "url": ["http://localhost:4322/daily-news/", "http://localhost:4322/daily-news/markets/"],
+      "numberOfRuns": 3,
+      "settings": { "formFactor": "mobile", "chromeFlags": "--no-sandbox --headless=new" }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }],
+        "categories:accessibility": ["error", { "minScore": 0.95, "aggregationMethod": "median-run" }]
+      }
+    },
+    "upload": { "target": "filesystem", "outputDir": ".lighthouseci" }
+  }
+}

@@ -3,7 +3,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { NewsFile, SummaryFile } from '../src/lib/types';
 import { validateSummaryFile } from '../src/lib/validate';
-import { buildSummary, checkBullets, headlinesHash, selectHeadlines, SUMMARY_MODEL, type CreateMessage } from '../src/pipeline/summary';
+import { buildSummary, checkBullets, headlinesHash, selectHeadlines, SUMMARY_MODEL, summaryDue, type CreateMessage } from '../src/pipeline/summary';
 
 const news: NewsFile = JSON.parse(readFileSync(new URL('./fixtures/news.sample.json', import.meta.url), 'utf8'));
 const sample: SummaryFile = JSON.parse(readFileSync(new URL('./fixtures/summary.sample.json', import.meta.url), 'utf8'));
@@ -115,6 +115,22 @@ describe('buildSummary', () => {
     const { file, reports } = await buildSummary(news, stub(new Error('overloaded'), new Error('overloaded')), sample, now);
     expect(file).toBeNull();
     expect(reports.map((r) => r.outcome)).toEqual(['kept', 'kept']);
+  });
+});
+
+describe('summaryDue', () => {
+  const at = (iso: string) => ({ ...sample, generatedAt: iso });
+
+  it('is due with no previous summary, or once it is 4 hours old', () => {
+    expect(summaryDue(null, now)).toBe(true);
+    expect(summaryDue(at('2026-10-10T08:00:00Z'), now)).toBe(true);
+    expect(summaryDue(at('2026-10-10T06:00:00Z'), now)).toBe(true);
+  });
+
+  it('is not due within 4 hours, allowing a scheduled run to start a few minutes early', () => {
+    expect(summaryDue(at('2026-10-10T09:00:00Z'), now)).toBe(false);
+    expect(summaryDue(at('2026-10-10T08:10:00Z'), now)).toBe(true);
+    expect(summaryDue(at('2026-10-10T08:20:00Z'), now)).toBe(false);
   });
 });
 
