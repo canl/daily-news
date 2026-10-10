@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example AI</title>
+  <entry>
+    <title type="html">New open model tops coding benchmark</title>
+    <link rel="alternate" type="text/html" href="https://example.org/model"/>
+    <link rel="replies" href="https://example.org/model#comments"/>
+    <published>2026-10-10T10:15:00Z</published>
+    <updated>2026-10-10T10:20:00Z</updated>
+    <summary type="html">&lt;p&gt;A lab released weights for a model that leads a popular coding test.&lt;/p&gt;</summary>
+  </entry>
+  <entry>
+    <title>Fed holds rates steady as inflation cools - Example AI</title>
+    <link href="https://example.org/fed"/>
+    <updated>2026-10-10T11:00:00Z</updated>
+    <content type="html">Same Fed story from a second outlet.</content>
+  </entry>
+</feed>
