@@ -29,12 +29,15 @@ const topics = (['finance', 'ai'] as Topic[])
     <section class="brief" aria-labelledby="brief-title" data-brief>
       <details open>
         <summary>
+          <span class="spark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7z" fill="currentColor"></path></svg>
+          </span>
           <h2 id="brief-title">Today in brief</h2>
           <span class="badge">AI-generated summary</span>
         </summary>
         {topics.map(({ topic, bullets }) => (
           <div class="topic" data-topic={topic}>
-            <h3>{TOPIC_LABELS[topic]}</h3>
+            <h3 data-kind={topic}>{TOPIC_LABELS[topic]}</h3>
             <ul>
               {bullets.map((b) => (
                 <li>
@@ -43,7 +46,7 @@ const topics = (['finance', 'ai'] as Topic[])
                     <span class="visually-hidden">Sources:</span>
                     {b.sources.map((s) => (
                       <a href={s.url} target="_blank" rel="noopener noreferrer" title={s.title}>
-                        {s.source}
+                        <span>{s.source}</span>
                       </a>
                     ))}
                   </p>
@@ -62,17 +65,22 @@ const topics = (['finance', 'ai'] as Topic[])
 
 <style>
   .brief {
-    margin-bottom: 16px;
-    background: var(--surface);
+    position: relative;
+    margin-bottom: 20px;
+    background:
+      linear-gradient(180deg, var(--accent-soft), transparent 120px),
+      var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
   }
 
   summary {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 48px;
+    min-height: 52px;
     padding: 0 16px;
     cursor: pointer;
     list-style: none;
@@ -84,6 +92,7 @@ const topics = (['finance', 'ai'] as Topic[])
 
   summary::after {
     content: '';
+    flex: none;
     width: 8px;
     height: 8px;
     margin-left: 4px;
@@ -96,17 +105,30 @@ const topics = (['finance', 'ai'] as Topic[])
     transform: rotate(-135deg) translateY(-2px);
   }
 
+  .spark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    color: #fff;
+    background: linear-gradient(135deg, #3b4fd8, #7c3aed);
+  }
+
   h2 {
     margin: 0;
     font-size: 1.0625rem;
+    letter-spacing: -0.01em;
   }
 
   .badge {
     margin-left: auto;
     padding: 2px 8px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 999px;
     white-space: nowrap;
@@ -116,47 +138,98 @@ const topics = (['finance', 'ai'] as Topic[])
     padding: 0 16px;
   }
 
+  .topic + .topic {
+    margin-top: 6px;
+  }
+
   .topic[hidden] {
     display: none;
   }
 
   h3 {
+    display: inline-block;
     margin: 4px 0 0;
-    font-size: 0.8125rem;
-    font-weight: 600;
+    padding: 2px 9px;
+    font-size: 0.75rem;
+    font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    border-radius: 999px;
+  }
+
+  h3[data-kind='finance'] {
+    color: var(--finance);
+    background: var(--finance-soft);
+  }
+
+  h3[data-kind='ai'] {
+    color: var(--ai);
+    background: var(--ai-soft);
   }
 
   ul {
     margin: 0;
-    padding: 0 0 0 18px;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    padding-left: 16px;
+  }
+
+  li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 16px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  [data-topic='finance'] li::before {
+    background: var(--finance);
+  }
+
+  [data-topic='ai'] li::before {
+    background: var(--ai);
   }
 
   li p {
     margin: 8px 0 0;
-    line-height: 1.45;
+    line-height: 1.5;
   }
 
   .sources {
     display: flex;
     flex-wrap: wrap;
-    column-gap: 14px;
-    margin: 0 !important;
-    font-size: 0.8125rem;
+    column-gap: 6px;
+    /* The links keep a 44 px tap height; the negative margin stops that adding visible space. */
+    margin: -4px 0 -8px !important;
   }
 
+  /* 44 px tall tap area around a smaller pill. */
   .sources a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    text-decoration: none;
+  }
+
+  .sources span {
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
   }
 
   .note {
-    margin: 4px 16px 0;
-    padding: 8px 0 14px;
+    margin: 6px 16px 0;
+    padding: 10px 0 14px;
     font-size: 0.75rem;
     color: var(--text-muted);
     border-top: 1px solid var(--border);

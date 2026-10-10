@@ -65,11 +65,28 @@ const days = m.closes.length;
   }
 
   .price {
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .change {
-    font-size: 0.8125rem;
+    margin-top: 2px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  [data-dir='up'] .change {
+    background: var(--up-soft);
+  }
+
+  [data-dir='down'] .change {
+    background: var(--down-soft);
+  }
+
+  [data-dir='flat'] .change {
+    background: var(--surface-2);
   }
 
   [data-dir='up'] .change,
