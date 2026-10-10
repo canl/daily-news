@@ -39,3 +39,26 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Built from the sample fixtures, like the browser tests. Budgets: performance 90+, accessibility 95+.
+      - run: npm run build
+        env:
+          NEWS_JSON: tests/fixtures/news.sample.json
+          MARKETS_JSON: tests/fixtures/markets.sample.json
+          SUMMARY_JSON: tests/fixtures/summary.sample.json
+      - run: npx -y @lhci/cli@0.15.1 autorun
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: lighthouse
+          path: .lighthouseci/
+          retention-days: 7

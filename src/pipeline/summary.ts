@@ -23,6 +23,19 @@ export function selectHeadlines(news: NewsFile, topic: Topic, limit = HEADLINES_
     .slice(0, limit);
 }
 
+/** How often a new summary is written; the hourly build reuses the previous one in between. */
+export const SUMMARY_EVERY_HOURS = 4;
+
+/**
+ * True when the previous summary is old enough to replace. A 15-minute allowance keeps a
+ * slightly early scheduled run from skipping a whole cycle.
+ */
+export function summaryDue(previous: SummaryFile | null, now: Date, everyHours = SUMMARY_EVERY_HOURS): boolean {
+  if (!previous) return true;
+  const age = now.getTime() - Date.parse(previous.generatedAt);
+  return !(age < everyHours * 3_600_000 - 15 * 60_000);
+}
+
 /** Changes only when the set of headlines the summary would read changes. */
 export function headlinesHash(news: NewsFile): string {
   const ids = (['finance', 'ai'] as const).flatMap((t) => selectHeadlines(news, t).map((s) => s.id)).sort();

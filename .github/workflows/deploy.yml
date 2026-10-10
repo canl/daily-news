@@ -1,0 +1,95 @@
+name: Deploy
+
+# Every hour: fetch news and prices, write the AI summary when it is due, then build and publish to GitHub Pages.
+# If any step fails, nothing is deployed and the last good site stays live.
+on:
+  schedule:
+    - cron: '7 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      new_summary:
+        description: Write a new AI summary now
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  SITE_DATA: https://canl.github.io/daily-news/data/v1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      # The live data is the fallback: a source that fails this hour keeps its last good file,
+      # and the summary is reused until it is due again.
+      - name: Restore the live data
+        run: |
+          mkdir -p public/data/v1
+          for f in news markets summary; do
+            if curl -fsSL --retry 2 "$SITE_DATA/$f.json" -o "/tmp/$f.json"; then
+              mv "/tmp/$f.json" "public/data/v1/$f.json"
+              echo "Restored $f.json"
+            else
+              echo "No live $f.json yet"
+            fi
+          done
+
+      - name: Fetch news
+        continue-on-error: true
+        run: npm run fetch:news
+      - name: Fetch market prices
+        continue-on-error: true
+        run: npm run fetch:markets
+      - name: Write the AI summary
+        continue-on-error: true
+        run: npm run fetch:summary
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUMMARY_FORCE: ${{ inputs.new_summary && '1' || '' }}
+
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # GitHub pauses scheduled workflows in a repository with no commits for 60 days.
+  # Re-enabling this workflow on each scheduled run keeps the hourly updates going.
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
