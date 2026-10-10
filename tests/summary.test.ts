@@ -3,10 +3,12 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import type { NewsFile, SummaryFile } from '../src/lib/types';
 import { validateSummaryFile } from '../src/lib/validate';
-import { buildSummary, checkBullets, headlinesHash, selectHeadlines, SUMMARY_MODEL, summaryDue, type CreateMessage } from '../src/pipeline/summary';
+import type { MarketsFile } from '../src/lib/types';
+import { buildSummary, checkBullets, headlinesHash, marketLines, selectHeadlines, SUMMARY_MODEL, summaryDue, type CreateMessage } from '../src/pipeline/summary';
 
 const news: NewsFile = JSON.parse(readFileSync(new URL('./fixtures/news.sample.json', import.meta.url), 'utf8'));
 const sample: SummaryFile = JSON.parse(readFileSync(new URL('./fixtures/summary.sample.json', import.meta.url), 'utf8'));
+const markets: MarketsFile = JSON.parse(readFileSync(new URL('./fixtures/markets.sample.json', import.meta.url), 'utf8'));
 const now = new Date('2026-10-10T12:00:00Z');
 
 /** A stub for client.messages.create that answers each call with the next JSON body. */
@@ -40,7 +42,7 @@ describe('checkBullets', () => {
   const stories = selectHeadlines(news, 'finance');
 
   it('keeps grounded bullets', () => {
-    expect(checkBullets(financeBody, stories)).toEqual({ bullets: sample.finance, rejected: [] });
+    expect(checkBullets(financeBody, stories, { analysis: true, marketText: marketLines(markets) })).toEqual({ bullets: sample.finance, rejected: [] });
   });
 
   it('drops bullets that cite nothing, cite unknown stories or invent numbers', () => {
@@ -65,16 +67,58 @@ describe('checkBullets', () => {
   });
 });
 
+describe('finance analysis', () => {
+  const stories = selectHeadlines(news, 'finance');
+  const marketText = marketLines(markets);
+  const fed = { text: 'The Fed kept its key rate unchanged.', storyIds: ['f0bca2357107'] };
+
+  it('lists each market move with its daily change and price', () => {
+    expect(marketText.split('\n')).toHaveLength(markets.instruments.length);
+    expect(marketText).toContain('S&P 500: -1.20% on the day, at 280.61');
+  });
+
+  it('keeps why and impact, allowing numbers from the market moves', () => {
+    const bullet = { ...fed, why: 'Steady rates ease pressure on borrowers.', impact: 'Stocks wobbled; the S&P 500 fell 1.2% on the day.' };
+    expect(checkBullets({ bullets: [bullet] }, stories, { analysis: true, marketText })).toEqual({ bullets: [bullet], rejected: [] });
+  });
+
+  it('drops bullets missing analysis or inventing numbers in it', () => {
+    const { bullets, rejected } = checkBullets(
+      {
+        bullets: [
+          { ...fed, why: '', impact: 'Bonds may rally.' },
+          { ...fed, why: 'Borrowing costs stay put.', impact: 'The S&P 500 could reach 6,000.' },
+        ],
+      },
+      stories,
+      { analysis: true, marketText },
+    );
+    expect(bullets).toEqual([]);
+    expect(rejected[0]).toContain('missing why it matters');
+    expect(rejected[1]).toContain('6,000');
+  });
+
+  it('asks for why and impact on finance only, and gives finance the market moves', async () => {
+    const create = stub(financeBody, aiBody);
+    await buildSummary(news, create, null, now, markets);
+    const [finance, ai] = create.mock.calls.map((c) => c[0] as Anthropic.MessageCreateParamsNonStreaming);
+    expect(JSON.stringify(finance!.output_config?.format)).toContain('"impact"');
+    expect(JSON.stringify(ai!.output_config?.format)).not.toContain('"impact"');
+    expect(JSON.stringify(finance!.messages)).toContain('Latest market moves');
+    expect(JSON.stringify(ai!.messages)).not.toContain('Latest market moves');
+  });
+});
+
 describe('buildSummary', () => {
   it('makes one Haiku call per topic and writes a valid file', async () => {
     const create = stub(financeBody, aiBody);
-    const { file, reports } = await buildSummary(news, create, null, now);
+    const { file, reports } = await buildSummary(news, create, null, now, markets);
     expect(create.mock.calls).toHaveLength(2);
     const params = create.mock.calls[0]![0] as Anthropic.MessageCreateParamsNonStreaming;
     expect(params.model).toBe(SUMMARY_MODEL);
     expect(params.output_config?.format?.type).toBe('json_schema');
     expect(JSON.stringify(params.messages)).toContain('[f0bca2357107] Fed holds rates steady');
-    expect(JSON.stringify(params.messages)).not.toContain('Nvidia');
+    expect(JSON.stringify(params.messages)).not.toContain('Nvidia unveils');
 
     expect(file).not.toBeNull();
     expect(file!.finance).toEqual(sample.finance);

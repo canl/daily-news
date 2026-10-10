@@ -12,7 +12,7 @@ The full requirements and design live in two Claude Docs (the source of truth wh
 - Collects stories from 10+ free public RSS feeds, tagged Finance or AI and by region.
 - Shows the last 48 hours, newest first, with topic and region filters and search.
 - Each card: headline, publisher, region, relative time, short snippet, link to the original.
-- An AI-written "today in 5 bullets" summary per topic (Claude Haiku 5.5, every 4 hours), every bullet citing its stories.
+- An AI-written "today in 5 bullets" summary per topic (Claude Haiku 5.5, every 4 hours), every bullet citing its stories. Finance bullets add "why it matters" and "market impact", labelled as analysis.
 - A Markets page with delayed daily moves for 25 instruments: indices, AI stocks, FX, commodities and rates, crypto.
 - Publishes `news.json`, `summary.json` and `markets.json` under `/data/v1/` for the future app.
 
