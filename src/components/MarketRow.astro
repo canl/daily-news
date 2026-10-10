@@ -1,0 +1,104 @@
+---
+import { direction, formatAsOf, formatChange, formatPrice } from '../lib/format';
+import type { Instrument } from '../lib/types';
+import Sparkline from './Sparkline.astro';
+
+interface Props {
+  instrument: Instrument;
+}
+
+const { instrument: m } = Astro.props;
+const dir = direction(m);
+const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■';
+const low = Math.min(...m.closes);
+const high = Math.max(...m.closes);
+const days = m.closes.length;
+---
+
+<details class="row" data-dir={dir} data-symbol={m.symbol}>
+  <summary>
+    <span class="name">{m.name}</span>
+    <Sparkline values={m.closes} label={`${m.name}, last ${days} days`} />
+    <span class="nums">
+      <span class="price">{formatPrice(m)}</span>
+      <span class="change"><span aria-hidden="true">{arrow}</span> {formatChange(m)}</span>
+    </span>
+  </summary>
+  <div class="detail">
+    <Sparkline values={m.closes} width={320} height={120} label={`${m.name}, daily closes over the last ${days} sessions`} />
+    <p class="range">
+      {days}-session range {formatPrice({ ...m, last: low })} to {formatPrice({ ...m, last: high })} · as of {formatAsOf(m.asOf)}
+    </p>
+  </div>
+</details>
+
+<style>
+  .row {
+    border-bottom: 1px solid var(--border);
+  }
+
+  summary {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 6px 0;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .nums {
+    display: grid;
+    justify-items: end;
+    min-width: 128px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price {
+    font-weight: 600;
+  }
+
+  .change {
+    font-size: 0.8125rem;
+  }
+
+  [data-dir='up'] .change,
+  [data-dir='up'] :global(.spark) {
+    color: var(--up);
+  }
+
+  [data-dir='down'] .change,
+  [data-dir='down'] :global(.spark) {
+    color: var(--down);
+  }
+
+  [data-dir='flat'] .change,
+  [data-dir='flat'] :global(.spark) {
+    color: var(--text-muted);
+  }
+
+  .detail {
+    padding: 4px 0 14px;
+  }
+
+  .detail :global(.spark) {
+    width: 100%;
+    height: auto;
+  }
+
+  .range {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+</style>

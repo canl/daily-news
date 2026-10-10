@@ -1,0 +1,35 @@
+{
+ "chart": {
+  "result": [
+   {
+    "meta": {
+     "currency": "USD",
+     "symbol": "^GSPC",
+     "regularMarketPrice": 6612.5,
+     "regularMarketTime": 1791648000
+    },
+    "timestamp": [
+     1791244800,
+     1791331200,
+     1791417600,
+     1791504000,
+     1791590400
+    ],
+    "indicators": {
+     "quote": [
+      {
+       "close": [
+        6500.0,
+        null,
+        6550.25,
+        6600.0,
+        6612.5
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "error": null
+ }
+}

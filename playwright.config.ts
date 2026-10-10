@@ -16,7 +16,7 @@ export default defineConfig({
   webServer: {
     // Builds from a fixed sample so the tests never depend on live feeds.
     command: `npm run build && npx astro preview --port ${port} --ignore-lock`,
-    env: { NEWS_JSON: 'tests/fixtures/news.sample.json' },
+    env: { NEWS_JSON: 'tests/fixtures/news.sample.json', MARKETS_JSON: 'tests/fixtures/markets.sample.json' },
     url: `http://localhost:${port}/daily-news/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

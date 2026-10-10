@@ -58,3 +58,13 @@ describe('sample news fixture', () => {
     expect(validateNewsFile(file)).toEqual([]);
   });
 });
+
+describe('sample markets fixture', () => {
+  it('used by the browser tests is a valid markets file covering every instrument', async () => {
+    const { validateMarketsFile } = await import('../src/lib/validate');
+    const { INSTRUMENTS } = await import('../src/pipeline/instruments');
+    const file = JSON.parse(fixture('markets.sample.json'));
+    expect(validateMarketsFile(file)).toEqual([]);
+    expect(file.instruments).toHaveLength(INSTRUMENTS.length);
+  });
+});
