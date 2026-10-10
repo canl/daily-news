@@ -51,3 +51,10 @@ describe('feed config', () => {
     expect(new Set(FEEDS.map((f) => f.url)).size).toBe(FEEDS.length);
   });
 });
+
+describe('sample news fixture', () => {
+  it('used by the browser tests is itself a valid news file', () => {
+    const file = JSON.parse(fixture('news.sample.json'));
+    expect(validateNewsFile(file)).toEqual([]);
+  });
+});

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T12:00:00Z",
+  "stories": [
+    {
+      "id": "f0bca2357107",
+      "title": "Fed holds rates steady as inflation cools",
+      "url": "https://example.com/f0bca2357107",
+      "source": "BBC News",
+      "topic": "finance",
+      "region": "europe",
+      "publishedAt": "2026-10-10T11:30:00Z",
+      "snippet": "The US central bank kept its key rate unchanged and signalled patience.",
+      "alsoReportedBy": [
+        "The Guardian",
+        "CNBC"
+      ]
+    },
+    {
+      "id": "bc21bc9d78ba",
+      "title": "Nvidia unveils new data centre chip",
+      "url": "https://example.com/bc21bc9d78ba",
+      "source": "TechCrunch",
+      "topic": "ai",
+      "region": "americas",
+      "publishedAt": "2026-10-10T11:00:00Z",
+      "snippet": "The company says the part doubles training throughput.",
+      "alsoReportedBy": []
+    },
+    {
+      "id": "4840d61cc7c4",
+      "title": "Asian shares edge higher on tech gains",
+      "url": "https://example.com/4840d61cc7c4",
+      "source": "South China Morning Post",
+      "topic": "finance",
+      "region": "asia-pacific",
+      "publishedAt": "2026-10-10T09:15:00Z",
+      "snippet": "Hong Kong and Tokyo rose in early trade.",
+      "alsoReportedBy": []
+    },
+    {
+      "id": "329d019416ba",
+      "title": "EU agrees new rules for general-purpose AI models",
+      "url": "https://example.com/329d019416ba",
+      "source": "The Guardian",
+      "topic": "ai",
+      "region": "europe",
+      "publishedAt": "2026-10-10T08:40:00Z",
+      "snippet": "Developers will need to publish summaries of training data.",
+      "alsoReportedBy": [
+        "The Verge"
+      ]
+    },
+    {
+      "id": "405a8205dc0c",
+      "title": "Oil prices climb on supply worries",
+      "url": "https://example.com/405a8205dc0c",
+      "source": "Al Jazeera",
+      "topic": "finance",
+      "region": "middle-east",
+      "publishedAt": "2026-10-10T07:05:00Z",
+      "snippet": "Brent crude rose 2% after output cuts were extended.",
+      "alsoReportedBy": []
+    },
+    {
+      "id": "f060ad6a2f4c",
+      "title": "Open model tops coding benchmark",
+      "url": "https://example.com/f060ad6a2f4c",
+      "source": "MIT Technology Review",
+      "topic": "ai",
+      "region": "global",
+      "publishedAt": "2026-10-10T05:00:00Z",
+      "snippet": "A lab released weights for a model that leads a popular coding test.",
+      "alsoReportedBy": []
+    },
+    {
+      "id": "5ce021168d77",
+      "title": "Wall Street closes at record high",
+      "url": "https://example.com/5ce021168d77",
+      "source": "CNBC",
+      "topic": "finance",
+      "region": "americas",
+      "publishedAt": "2026-10-09T21:10:00Z",
+      "snippet": "The S&P 500 gained 0.8% led by chip stocks.",
+      "alsoReportedBy": []
+    },
+    {
+      "id": "39cd97d621be",
+      "title": "Robotics start-up raises $400m for warehouse AI",
+      "url": "https://example.com/39cd97d621be",
+      "source": "Ars Technica",
+      "topic": "ai",
+      "region": "americas",
+      "publishedAt": "2026-10-09T15:20:00Z",
+      "snippet": "",
+      "alsoReportedBy": []
+    }
+  ]
+}

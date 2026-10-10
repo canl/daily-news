@@ -25,15 +25,26 @@ export interface FeedFailure {
   error: string;
 }
 
+export interface FeedStats {
+  source: string;
+  url: string;
+  /** Items the feed returned. */
+  parsed: number;
+  /** Items kept: valid and inside the time window. */
+  kept: number;
+}
+
 export interface BuildNewsResult {
   file: NewsFile;
   failures: FeedFailure[];
+  stats: FeedStats[];
 }
 
-function toStories(feed: FeedConfig, xml: string, now: Date): Story[] {
+function toStories(feed: FeedConfig, xml: string, now: Date): { parsed: number; stories: Story[] } {
   const oldest = now.getTime() - WINDOW_HOURS * 3_600_000;
   const newest = now.getTime() + 10 * 60_000; // tolerate small clock skew
-  return parseFeed(xml)
+  const items = parseFeed(xml);
+  const stories = items
     .filter((item) => item.title && /^https?:\/\//.test(item.url) && item.publishedAt)
     .filter((item) => {
       const t = Date.parse(item.publishedAt);
@@ -50,6 +61,7 @@ function toStories(feed: FeedConfig, xml: string, now: Date): Story[] {
       snippet: truncate(toPlainText(item.description)),
       alsoReportedBy: [],
     }));
+  return { parsed: items.length, stories };
 }
 
 /** Fetches every feed in parallel; a feed that fails is reported and skipped. */
@@ -61,11 +73,14 @@ export async function buildNews(
   const results = await Promise.allSettled(feeds.map(async (feed) => toStories(feed, await fetcher(feed.url), now)));
 
   const failures: FeedFailure[] = [];
+  const stats: FeedStats[] = [];
   const stories: Story[] = [];
   results.forEach((result, i) => {
     const feed = feeds[i]!;
-    if (result.status === 'fulfilled') stories.push(...result.value);
-    else failures.push({ source: feed.source, url: feed.url, error: String(result.reason?.message ?? result.reason) });
+    if (result.status === 'fulfilled') {
+      stories.push(...result.value.stories);
+      stats.push({ source: feed.source, url: feed.url, parsed: result.value.parsed, kept: result.value.stories.length });
+    } else failures.push({ source: feed.source, url: feed.url, error: String(result.reason?.message ?? result.reason) });
   });
 
   const merged = dedupe(stories)
@@ -75,5 +90,6 @@ export async function buildNews(
   return {
     file: { schemaVersion: SCHEMA_VERSION, generatedAt: now.toISOString(), stories: merged },
     failures,
+    stats,
   };
 }
