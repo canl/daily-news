@@ -36,9 +36,14 @@ export interface NewsFile extends DataFile {
 }
 
 export interface SummaryBullet {
+  /** What happened, from the cited stories. */
   text: string;
   /** Ids of the stories this bullet draws on; never empty. */
   storyIds: string[];
+  /** Finance only: why it matters. Claude's analysis, not reporting. */
+  why?: string;
+  /** Finance only: the likely effect on markets, citing the day's actual moves where relevant. Claude's analysis. */
+  impact?: string;
 }
 
 export interface SummaryFile extends DataFile {

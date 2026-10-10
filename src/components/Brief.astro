@@ -18,7 +18,7 @@ const topics = (['finance', 'ai'] as Topic[])
   .map((topic) => ({
     topic,
     bullets: (summary?.[topic] ?? [])
-      .map((b) => ({ text: b.text, sources: b.storyIds.map((id) => byId.get(id)).filter((s): s is Story => s !== undefined) }))
+      .map((b) => ({ text: b.text, why: b.why, impact: b.impact, sources: b.storyIds.map((id) => byId.get(id)).filter((s): s is Story => s !== undefined) }))
       .filter((b) => b.sources.length > 0),
   }))
   .filter((t) => t.bullets.length > 0);
@@ -42,6 +42,22 @@ const topics = (['finance', 'ai'] as Topic[])
               {bullets.map((b) => (
                 <li>
                   <p>{b.text}</p>
+                  {(b.why || b.impact) && (
+                    <dl class="insight">
+                      {b.why && (
+                        <div>
+                          <dt>Why it matters</dt>
+                          <dd>{b.why}</dd>
+                        </div>
+                      )}
+                      {b.impact && (
+                        <div>
+                          <dt>Market impact</dt>
+                          <dd>{b.impact}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  )}
                   <p class="sources">
                     <span class="visually-hidden">Sources:</span>
                     {b.sources.map((s) => (
@@ -56,7 +72,8 @@ const topics = (['finance', 'ai'] as Topic[])
           </div>
         ))}
         <p class="note">
-          Written by Claude from the headlines on this page. It can make mistakes, so check the linked stories.
+          Written by Claude from the headlines on this page. "Why it matters" and "Market impact" are Claude's analysis, not
+          reporting or investment advice. It can make mistakes, so check the linked stories.
         </p>
       </details>
     </section>
@@ -200,6 +217,29 @@ const topics = (['finance', 'ai'] as Topic[])
   li p {
     margin: 8px 0 0;
     line-height: 1.5;
+  }
+
+  .insight {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .insight dt {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .insight dd {
+    margin: 1px 0 0;
   }
 
   .sources {

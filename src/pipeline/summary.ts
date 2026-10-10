@@ -1,14 +1,18 @@
 import { createHash } from 'node:crypto';
 import type Anthropic from '@anthropic-ai/sdk';
-import { SCHEMA_VERSION, type NewsFile, type Story, type SummaryBullet, type SummaryFile, type Topic } from '../lib/types';
+import { formatPrice } from '../lib/format';
+import { SCHEMA_VERSION, type MarketsFile, type NewsFile, type Story, type SummaryBullet, type SummaryFile, type Topic } from '../lib/types';
 
 export const SUMMARY_MODEL = 'claude-haiku-5-5';
 export const HEADLINES_PER_TOPIC = 40;
 export const BULLETS_PER_TOPIC = 5;
 /** Fewer valid bullets than this and the topic keeps its previous summary instead. */
 export const MIN_BULLETS = 3;
-/** Thinking is always on for this model and counts toward this cap; the bullets themselves need about 400 tokens. */
-const MAX_TOKENS = 2000;
+/**
+ * Thinking is always on for this model and counts toward these caps. AI bullets need about 400 tokens;
+ * finance bullets, with why it matters and market impact, about 1,200.
+ */
+const MAX_TOKENS: Record<Topic, number> = { finance: 4000, ai: 2000 };
 
 /** The one SDK call the summary makes; tests pass a stub. */
 export type CreateMessage = (params: Anthropic.MessageCreateParamsNonStreaming) => Promise<Anthropic.Message>;
@@ -42,15 +46,36 @@ export function headlinesHash(news: NewsFile): string {
   return createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 16);
 }
 
-const SYSTEM = `You write the daily brief for a news site. You are given numbered headlines with short snippets from public news feeds.
+const GROUNDING = `Grounding rules:
+- Cite the ids of the one to three stories each bullet is based on.
+- If two stories report the same thing, write one bullet that cites both.
+- Only use a number, percentage, price or date if it appears in a story you cite`;
+
+const AI_SYSTEM = `You write the daily brief for a news site. You are given numbered headlines with short snippets from public news feeds.
 
 Write exactly ${BULLETS_PER_TOPIC} bullets covering the most important separate developments. Each bullet is one plain sentence of at most 30 words, written for a general reader.
 
-Grounding rules:
-- Use only facts stated in the headlines and snippets. Do not add context, causes, predictions or opinions of your own.
-- Only use a number, percentage, price or date if it appears in a story you cite.
-- Cite the ids of the one to three stories each bullet is based on.
-- If two stories report the same thing, write one bullet that cites both.`;
+${GROUNDING}.
+- Use only facts stated in the headlines and snippets. Do not add context, causes, predictions or opinions of your own.`;
+
+const FINANCE_SYSTEM = `You write the daily markets brief for a news site, for readers who follow markets but are not professionals. You are given numbered finance headlines with short snippets from public news feeds, and the latest delayed daily moves for major markets.
+
+Pick the ${BULLETS_PER_TOPIC} most important separate developments for markets. For each, write three short parts:
+- text: what happened. One sentence of at most 30 words, using only facts stated in the cited headlines and snippets.
+- why: why it matters. One or two sentences, at most 35 words. You may draw on general background knowledge (how central banks, earnings, trade, energy or currencies usually work) to explain the significance, but do not state new facts about the event itself.
+- impact: the likely effect on markets. One or two sentences, at most 35 words. Name the assets, sectors or regions most exposed and the usual direction of pressure. Where the market moves provided show a related move, mention it; never claim the news caused it.
+
+${GROUNDING}, or in the market moves provided.
+- Do not forecast specific prices, levels or dates, and do not give investment advice.
+- Write plainly and with appropriate hedging ("could", "tends to", "may"); avoid hype.`;
+
+/** The market moves the finance brief may refer to, one line per instrument. */
+export function marketLines(markets: MarketsFile | null): string {
+  if (!markets) return '';
+  return markets.instruments
+    .map((m) => `${m.name}: ${m.changePct >= 0 ? '+' : ''}${m.changePct.toFixed(2)}% on the day, at ${formatPrice(m)}`)
+    .join('\n');
+}
 
 function headlineList(stories: Story[]): string {
   return stories
@@ -58,38 +83,47 @@ function headlineList(stories: Story[]): string {
     .join('\n\n');
 }
 
-const OUTPUT_SCHEMA = {
-  type: 'object',
-  properties: {
-    bullets: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          storyIds: { type: 'array', items: { type: 'string' } },
+function outputSchema(topic: Topic) {
+  const extra = topic === 'finance' ? { why: { type: 'string' }, impact: { type: 'string' } } : {};
+  return {
+    type: 'object',
+    properties: {
+      bullets: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { text: { type: 'string' }, storyIds: { type: 'array', items: { type: 'string' } }, ...extra },
+          required: ['text', 'storyIds', ...Object.keys(extra)],
+          additionalProperties: false,
         },
-        required: ['text', 'storyIds'],
-        additionalProperties: false,
       },
     },
-  },
-  required: ['bullets'],
-  additionalProperties: false,
-};
+    required: ['bullets'],
+    additionalProperties: false,
+  };
+}
 
 const numberPattern = /\d[\d,.]*\d|\d/g;
-const normalizeNumber = (n: string) => n.replace(/,/g, '').replace(/\.0+$/, '');
+/** "1,200", "1200.0" and "1200" compare equal, as do "0.80" and "0.8". */
+const normalizeNumber = (n: string) => String(Number(n.replace(/,/g, '')));
 
-/** Numbers in the bullet that none of its cited stories contain. */
-function unsupportedNumbers(text: string, cited: Story[]): string[] {
-  const source = cited.map((s) => `${s.title} ${s.snippet}`).join(' ');
+/** Numbers in the text that the given source text does not contain. */
+function unsupportedNumbers(text: string, source: string): string[] {
   const known = new Set((source.match(numberPattern) ?? []).map(normalizeNumber));
   return (text.match(numberPattern) ?? []).filter((n) => !known.has(normalizeNumber(n)));
 }
 
-/** Keeps bullets that cite at least one given story and invent no numbers. Returns the kept bullets and why others were dropped. */
-export function checkBullets(raw: unknown, stories: Story[]): { bullets: SummaryBullet[]; rejected: string[] } {
+const storyText = (cited: Story[]) => cited.map((s) => `${s.title} ${s.snippet}`).join(' ');
+
+/**
+ * Keeps bullets that cite at least one given story and invent no numbers. Returns the kept bullets and why others were dropped.
+ * With `analysis`, each bullet must also carry why and impact; their numbers may come from the cited stories or `marketText`.
+ */
+export function checkBullets(
+  raw: unknown,
+  stories: Story[],
+  { analysis = false, marketText = '' }: { analysis?: boolean; marketText?: string } = {},
+): { bullets: SummaryBullet[]; rejected: string[] } {
   const byId = new Map(stories.map((s) => [s.id, s]));
   const bullets: SummaryBullet[] = [];
   const rejected: string[] = [];
@@ -104,9 +138,16 @@ export function checkBullets(raw: unknown, stories: Story[]): { bullets: Summary
     else if (cited.length === 0) rejected.push(`cites no known story: "${text}"`);
     else if (cited.length < ids.length) rejected.push(`cites an unknown story: "${text}"`);
     else {
-      const invented = unsupportedNumbers(text, cited);
+      const source = storyText(cited);
+      const invented = unsupportedNumbers(text, source);
+      const why = typeof item?.why === 'string' ? item.why.trim() : '';
+      const impact = typeof item?.impact === 'string' ? item.impact.trim() : '';
+      const inventedInAnalysis = unsupportedNumbers(`${why} ${impact}`, `${source} ${marketText}`);
       if (invented.length > 0) rejected.push(`numbers not in its stories (${invented.join(', ')}): "${text}"`);
-      else bullets.push({ text, storyIds: cited.map((s) => s.id) });
+      else if (analysis && (!why || !impact)) rejected.push(`is missing why it matters or market impact: "${text}"`);
+      else if (analysis && inventedInAnalysis.length > 0) {
+        rejected.push(`analysis has numbers not in its stories or the market data (${inventedInAnalysis.join(', ')}): "${text}"`);
+      } else bullets.push({ text, storyIds: cited.map((s) => s.id), ...(analysis ? { why, impact } : {}) });
     }
   }
   return { bullets, rejected };
@@ -116,16 +157,21 @@ export async function summarizeTopic(
   create: CreateMessage,
   topic: Topic,
   stories: Story[],
+  markets: MarketsFile | null = null,
 ): Promise<{ bullets: SummaryBullet[]; rejected: string[]; usage: Anthropic.Usage }> {
+  const finance = topic === 'finance';
+  const marketText = finance ? marketLines(markets) : '';
+  const headlines = `Today's ${TOPIC_NAMES[topic]} headlines:\n\n${headlineList(stories)}`;
   const response = await create({
     model: SUMMARY_MODEL,
-    max_tokens: MAX_TOKENS,
-    system: SYSTEM,
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
+    max_tokens: MAX_TOKENS[topic],
+    system: finance ? FINANCE_SYSTEM : AI_SYSTEM,
+    // The finance brief explains and connects events, so it gets more room to think.
+    output_config: { effort: finance ? 'medium' : 'low', format: { type: 'json_schema', schema: outputSchema(topic) } },
     messages: [
       {
         role: 'user',
-        content: `Today's ${TOPIC_NAMES[topic]} headlines:\n\n${headlineList(stories)}`,
+        content: marketText ? `${headlines}\n\nLatest market moves (delayed):\n${marketText}` : headlines,
       },
     ],
   });
@@ -141,7 +187,7 @@ export async function summarizeTopic(
   } catch {
     throw new Error('response was not valid JSON');
   }
-  return { ...checkBullets(parsed, stories), usage: response.usage };
+  return { ...checkBullets(parsed, stories, { analysis: finance, marketText }), usage: response.usage };
 }
 
 export interface TopicReport {
@@ -170,6 +216,7 @@ export async function buildSummary(
   create: CreateMessage,
   previous: SummaryFile | null = null,
   now: Date = new Date(),
+  markets: MarketsFile | null = null,
 ): Promise<BuildSummaryResult> {
   const basedOn = headlinesHash(news);
   if (previous?.basedOn === basedOn) return { file: null, reports: [] };
@@ -192,7 +239,7 @@ export async function buildSummary(
       continue;
     }
     try {
-      const { bullets, rejected, usage } = await summarizeTopic(create, topic, stories);
+      const { bullets, rejected, usage } = await summarizeTopic(create, topic, stories, markets);
       const tokens = { inputTokens: usage.input_tokens, outputTokens: usage.output_tokens };
       if (bullets.length < MIN_BULLETS) {
         reports.push({ ...keep(`only ${bullets.length} grounded bullets`, rejected), ...tokens });

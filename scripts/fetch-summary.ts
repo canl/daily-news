@@ -5,6 +5,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import Anthropic from '@anthropic-ai/sdk';
+import { loadMarkets } from '../src/lib/markets-data';
 import { loadNews } from '../src/lib/news-data';
 import { loadSummary } from '../src/lib/summary-data';
 import { validateSummaryFile } from '../src/lib/validate';
@@ -34,7 +35,9 @@ if (!process.env.SUMMARY_FORCE && !summaryDue(previous, new Date())) {
   process.exit(0);
 }
 const client = new Anthropic();
-const { file, reports } = await buildSummary(news, (params) => client.messages.create(params), previous);
+// The finance brief refers to the day's market moves when markets.json is there; it still works without.
+const markets = loadMarkets();
+const { file, reports } = await buildSummary(news, (params) => client.messages.create(params), previous, new Date(), markets);
 
 let input = 0;
 let output = 0;
@@ -62,7 +65,11 @@ if (errors.length > 0) {
 
 for (const topic of ['finance', 'ai'] as const) {
   console.log(`\n${topic}:`);
-  for (const b of file[topic]) console.log(`- ${b.text} [${b.storyIds.join(', ')}]`);
+  for (const b of file[topic]) {
+    console.log(`- ${b.text} [${b.storyIds.join(', ')}]`);
+    if (b.why) console.log(`    Why it matters: ${b.why}`);
+    if (b.impact) console.log(`    Market impact: ${b.impact}`);
+  }
 }
 
 await mkdir(OUT_DIR, { recursive: true });

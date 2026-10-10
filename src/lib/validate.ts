@@ -81,6 +81,9 @@ export function validateSummaryFile(file: SummaryFile, news?: NewsFile): string[
       if (!b.text.trim()) errors.push(`${at}.text is empty`);
       if (b.storyIds.length === 0) errors.push(`${at} cites no stories`);
       for (const id of b.storyIds) if (known && !known.has(id)) errors.push(`${at} cites unknown story ${id}`);
+      for (const key of ['why', 'impact'] as const) {
+        if (b[key] !== undefined && (typeof b[key] !== 'string' || !b[key].trim())) errors.push(`${at}.${key} is empty`);
+      }
     });
   }
   return errors;

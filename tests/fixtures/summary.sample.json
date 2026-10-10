@@ -4,13 +4,50 @@
   "model": "claude-haiku-5-5",
   "basedOn": "sample",
   "finance": [
-    { "text": "The US Federal Reserve kept its key rate unchanged and signalled patience as inflation cools.", "storyIds": ["f0bca2357107"] },
-    { "text": "Wall Street closed at a record high, with the S&P 500 up 0.8% on chip stocks.", "storyIds": ["5ce021168d77", "4840d61cc7c4"] },
-    { "text": "Brent crude rose 2% after producers extended output cuts.", "storyIds": ["405a8205dc0c"] }
+    {
+      "text": "The US Federal Reserve kept its key rate unchanged and signalled patience as inflation cools.",
+      "storyIds": [
+        "f0bca2357107"
+      ],
+      "why": "A pause keeps borrowing costs where they are for now, and signals the Fed sees inflation easing without needing tighter policy.",
+      "impact": "Steady rates tend to support stocks and bonds; the S&P 500 is down 1.20% on the day, so the pause has not lifted sentiment yet."
+    },
+    {
+      "text": "Wall Street closed at a record high, with the S&P 500 up 0.8% on chip stocks.",
+      "storyIds": [
+        "5ce021168d77",
+        "4840d61cc7c4"
+      ],
+      "why": "A record close shows investors are still willing to pay up for chip makers, which have led this year's gains.",
+      "impact": "Chip and tech shares carry the most weight here; strength in Asian tech suggests the rally is global rather than US-only."
+    },
+    {
+      "text": "Brent crude rose 2% after producers extended output cuts.",
+      "storyIds": [
+        "405a8205dc0c"
+      ],
+      "why": "Extended output cuts keep supply tight, which feeds through to fuel prices and inflation.",
+      "impact": "Energy shares and oil exporters' currencies tend to benefit, while airlines and other fuel-heavy sectors face higher costs."
+    }
   ],
   "ai": [
-    { "text": "Nvidia unveiled a data centre chip it says doubles training throughput.", "storyIds": ["bc21bc9d78ba"] },
-    { "text": "The EU agreed rules requiring developers of general-purpose AI models to publish training data summaries.", "storyIds": ["329d019416ba"] },
-    { "text": "A robotics start-up raised $400m for warehouse AI.", "storyIds": ["39cd97d621be"] }
+    {
+      "text": "Nvidia unveiled a data centre chip it says doubles training throughput.",
+      "storyIds": [
+        "bc21bc9d78ba"
+      ]
+    },
+    {
+      "text": "The EU agreed rules requiring developers of general-purpose AI models to publish training data summaries.",
+      "storyIds": [
+        "329d019416ba"
+      ]
+    },
+    {
+      "text": "A robotics start-up raised $400m for warehouse AI.",
+      "storyIds": [
+        "39cd97d621be"
+      ]
+    }
   ]
 }

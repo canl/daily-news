@@ -18,6 +18,17 @@ test.describe('Today in brief', () => {
     await expect(brief.locator('li').nth(1).getByRole('link')).toHaveCount(2);
   });
 
+  test('finance bullets explain why it matters and the market impact; AI bullets do not', async ({ page }) => {
+    await page.goto('./');
+    const brief = page.getByRole('region', { name: 'Today in brief' });
+    const finance = brief.locator('[data-topic="finance"] li');
+    await expect(finance.first().locator('dt')).toHaveText(['Why it matters', 'Market impact']);
+    await expect(finance.first()).toContainText('borrowing costs');
+    await expect(finance.first()).toContainText('S&P 500 is down 1.20%');
+    await expect(brief.locator('[data-topic="ai"] dt')).toHaveCount(0);
+    await expect(brief).toContainText('not reporting or investment advice');
+  });
+
   test('follows the topic filter', async ({ page }) => {
     await page.goto('./?topic=ai');
     const brief = page.getByRole('region', { name: 'Today in brief' });
