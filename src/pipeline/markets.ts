@@ -10,6 +10,8 @@ export interface Quote {
   last: number;
   /** ISO 8601 time of the last price. */
   asOf: string;
+  /** Close of the session before the one the last price belongs to, when the source can tell. */
+  previousClose?: number;
 }
 
 export type FetchText = (url: string) => Promise<string>;
@@ -33,12 +35,28 @@ export function parseYahoo(body: string): Quote {
   const json = JSON.parse(body);
   const result = json?.chart?.result?.[0];
   if (!result) throw new Error(json?.chart?.error?.description ?? 'No chart result');
+  const offset = Number(result.meta?.gmtoffset ?? 0);
+  const sessionDay = (seconds: number) => new Date((seconds + offset) * 1000).toISOString().slice(0, 10);
+  const timestamps: number[] = result.timestamp ?? [];
   const raw: (number | null)[] = result.indicators?.quote?.[0]?.close ?? [];
-  const closes = raw.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+
+  // One close per session day: Yahoo can repeat the live session as an extra bar.
+  const byDay = new Map<string, number>();
+  raw.forEach((close, i) => {
+    const t = timestamps[i];
+    if (typeof close === 'number' && Number.isFinite(close) && typeof t === 'number') byDay.set(sessionDay(t), close);
+  });
+  const days = [...byDay.keys()].sort();
+  const closes = days.map((d) => byDay.get(d)!);
+
   const last = Number(result.meta?.regularMarketPrice ?? closes.at(-1));
-  const time = Number(result.meta?.regularMarketTime ?? result.timestamp?.at(-1));
+  const time = Number(result.meta?.regularMarketTime ?? timestamps.at(-1));
   if (closes.length < 2 || !Number.isFinite(last) || !Number.isFinite(time)) throw new Error('Not enough price history');
-  return { closes, last, asOf: new Date(time * 1000).toISOString() };
+
+  const today = sessionDay(time);
+  const before = days.filter((d) => d < today);
+  const previousClose = before.length > 0 ? byDay.get(before.at(-1)!) : undefined;
+  return { closes, last, asOf: new Date(time * 1000).toISOString(), previousClose };
 }
 
 /** Parses Stooq's daily CSV (Date,Open,High,Low,Close,Volume). Throws when it holds no usable prices. */
@@ -63,8 +81,9 @@ const round = (n: number, places: number) => Number(n.toFixed(places));
 /** Daily change against the previous close. */
 export function toInstrument(config: InstrumentConfig, quote: Quote): Instrument {
   const closes = quote.closes.slice(-MAX_CLOSES);
-  // When the latest close already equals the live price, the previous session is one further back.
-  const prev = closes.at(-1) === quote.last ? closes.at(-2)! : closes.at(-1)!;
+  // Without a previous close from the source: when the latest close already equals the live price,
+  // the previous session is one further back.
+  const prev = quote.previousClose ?? (closes.at(-1) === quote.last ? closes.at(-2)! : closes.at(-1)!);
   const change = quote.last - prev;
   const places = Math.max(config.decimals, 2) + 2;
   return {

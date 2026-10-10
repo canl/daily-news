@@ -18,6 +18,11 @@ for (const m of file.instruments) {
   console.log(`${m.name.padEnd(20)} ${String(m.last).padStart(12)} ${(m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2)}%  ${m.asOf}`);
 }
 
+const unchanged = file.instruments.filter((m) => m.change === 0).length;
+if (unchanged > file.instruments.length / 2) {
+  console.warn(`warn: ${unchanged} instruments show no change at all; check how the previous close is found`);
+}
+
 if (file.instruments.length < INSTRUMENTS.length / 2) {
   console.error('error: fewer than half the instruments loaded; not writing markets.json');
   process.exit(1);

@@ -12,12 +12,18 @@ const eur: InstrumentConfig = { symbol: 'EURUSD=X', stooq: 'eurusd', name: 'EUR/
 const noFallback: InstrumentConfig = { symbol: 'XYZ', name: 'No fallback', group: 'ai-stocks', currency: 'USD', decimals: 2 };
 
 describe('parseYahoo', () => {
-  it('reads closes, skipping gaps, and the live price', () => {
+  it('reads one close per session, skipping gaps and the repeated live bar', () => {
     expect(parseYahoo(fixture('yahoo-chart.json'))).toEqual({
-      closes: [6500, 6550.25, 6600, 6612.5],
+      closes: [6500, 6550.25, 6612.5],
       last: 6612.5,
-      asOf: '2026-10-10T16:00:00.000Z',
+      asOf: '2026-10-09T20:00:00.000Z',
+      previousClose: 6550.25,
     });
+  });
+
+  it('gives a real daily change when Yahoo repeats the last session', () => {
+    const m = toInstrument(spx, parseYahoo(fixture('yahoo-chart.json')));
+    expect(m).toMatchObject({ change: 62.25, changePct: 0.95 });
   });
 
   it('throws with Yahoo’s own message for an unknown symbol', () => {
@@ -73,6 +79,7 @@ describe('buildMarkets', () => {
       now,
     );
     expect(file.instruments.map((m) => m.symbol)).toEqual(['^GSPC', 'EURUSD=X']);
+    expect(file.instruments.every((m) => m.change !== 0)).toBe(true);
     expect(fallbacks).toEqual(['EURUSD=X']);
     expect(failures).toEqual([{ symbol: 'XYZ', name: 'No fallback', error: 'HTTP 404' }]);
     expect(validateMarketsFile(file)).toEqual([]);

@@ -18,7 +18,8 @@ export const FEEDS: FeedConfig[] = [
   { source: 'CNBC', url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html', topic: 'finance', region: 'americas' },
   { source: 'MarketWatch', url: 'https://feeds.marketwatch.com/marketwatch/topstories/', topic: 'finance', region: 'americas' },
   { source: 'CNBC', url: 'https://www.cnbc.com/id/10000664/device/rss/rss.html', topic: 'finance', region: 'americas' },
-  { source: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar', topic: 'finance', region: 'asia-pacific' },
+  // Nikkei Asia's feed was dropped: its items carry no publish date.
+  { source: 'The Economic Times', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms', topic: 'finance', region: 'asia-pacific' },
   { source: 'South China Morning Post', url: 'https://www.scmp.com/rss/92/feed', topic: 'finance', region: 'asia-pacific' },
   { source: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', topic: 'finance', region: 'middle-east' },
   { source: 'TechCrunch', url: 'https://techcrunch.com/category/artificial-intelligence/feed/', topic: 'ai', region: 'americas' },
