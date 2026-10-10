@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, type MarketsFile, type NewsFile } from './types';
+import { SCHEMA_VERSION, type MarketsFile, type NewsFile, type SummaryFile } from './types';
 
 const TOPICS = new Set(['finance', 'ai']);
 const REGIONS = new Set(['global', 'americas', 'europe', 'asia-pacific', 'middle-east']);
@@ -57,5 +57,31 @@ export function validateMarketsFile(file: MarketsFile): string[] {
       errors.push(`${at}.closes must hold 2 to 30 numbers`);
     }
   });
+  return errors;
+}
+
+/**
+ * Returns a list of contract violations; empty means the file is valid.
+ * With `news`, every cited story id must also exist in that news file.
+ */
+export function validateSummaryFile(file: SummaryFile, news?: NewsFile): string[] {
+  const errors: string[] = [];
+  if (file.schemaVersion !== SCHEMA_VERSION) errors.push(`schemaVersion must be ${SCHEMA_VERSION}`);
+  if (!isIso(file.generatedAt)) errors.push('generatedAt must be an ISO date');
+  if (!file.model) errors.push('model is empty');
+  if (!file.basedOn) errors.push('basedOn is empty');
+  const known = news ? new Set(news.stories.map((s) => s.id)) : null;
+  for (const topic of ['finance', 'ai'] as const) {
+    if (!Array.isArray(file[topic])) {
+      errors.push(`${topic} must be an array`);
+      continue;
+    }
+    file[topic].forEach((b, i) => {
+      const at = `${topic}[${i}]`;
+      if (!b.text.trim()) errors.push(`${at}.text is empty`);
+      if (b.storyIds.length === 0) errors.push(`${at} cites no stories`);
+      for (const id of b.storyIds) if (known && !known.has(id)) errors.push(`${at} cites unknown story ${id}`);
+    });
+  }
   return errors;
 }

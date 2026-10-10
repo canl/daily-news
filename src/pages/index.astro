@@ -1,4 +1,5 @@
 ---
+import Brief from '../components/Brief.astro';
 import MarketStrip from '../components/MarketStrip.astro';
 import StoryCard from '../components/StoryCard.astro';
 import Base from '../layouts/Base.astro';
@@ -47,6 +48,7 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
 
   <main>
     <MarketStrip />
+    <Brief stories={stories} />
     <p class="visually-hidden" role="status" aria-live="polite" data-status></p>
     {
       stories.length === 0 ? (

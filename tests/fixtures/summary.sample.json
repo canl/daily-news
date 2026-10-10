@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T12:00:00Z",
+  "model": "claude-haiku-5-5",
+  "basedOn": "sample",
+  "finance": [
+    { "text": "The US Federal Reserve kept its key rate unchanged and signalled patience as inflation cools.", "storyIds": ["f0bca2357107"] },
+    { "text": "Wall Street closed at a record high, with the S&P 500 up 0.8% on chip stocks.", "storyIds": ["5ce021168d77", "4840d61cc7c4"] },
+    { "text": "Brent crude rose 2% after producers extended output cuts.", "storyIds": ["405a8205dc0c"] }
+  ],
+  "ai": [
+    { "text": "Nvidia unveiled a data centre chip it says doubles training throughput.", "storyIds": ["bc21bc9d78ba"] },
+    { "text": "The EU agreed rules requiring developers of general-purpose AI models to publish training data summaries.", "storyIds": ["329d019416ba"] },
+    { "text": "A robotics start-up raised $400m for warehouse AI.", "storyIds": ["39cd97d621be"] }
+  ]
+}

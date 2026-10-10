@@ -19,6 +19,7 @@ npm test          # vitest
 npm run build     # static site into dist/
 npm run fetch:news    # real feeds into public/data/v1/news.json
 npm run fetch:markets # real delayed prices into public/data/v1/markets.json
+npm run fetch:summary # AI brief from news.json into summary.json (needs ANTHROPIC_API_KEY)
 npm run test:e2e  # Playwright at phone size, built from tests/fixtures/news.sample.json
 ```
 
