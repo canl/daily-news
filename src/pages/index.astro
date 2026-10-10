@@ -13,21 +13,28 @@ const stories = news?.stories ?? [];
 const generatedAt = news?.generatedAt;
 const now = generatedAt ? new Date(generatedAt) : new Date();
 
+// For example "Sat 10 Oct", from the time the data was fetched.
+const dateLabel = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(now);
 const topics = Object.entries(TOPIC_LABELS) as [Topic, string][];
 const regions = Object.entries(REGION_LABELS) as [Region, string][];
 ---
 
 <Base title="Daily News: finance and AI headlines" active="today">
-  <header class="top">
-    <div class="top-row">
-      <h1>Daily News</h1>
-      {
-        generatedAt && (
-          <p class="updated">
-            Updated <time datetime={generatedAt} data-relative>{relativeTime(generatedAt, now)}</time>
-          </p>
-        )
-      }
+  <header class="page-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 16l5-5 4 4 7-7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </span>
+      <div class="brand-text">
+        <h1>Daily News</h1>
+        {
+          generatedAt && (
+            <p class="brand-sub updated">
+              {dateLabel} · Updated <time datetime={generatedAt} data-relative>{relativeTime(generatedAt, now)}</time>
+            </p>
+          )
+        }
+      </div>
       <button class="icon-button" type="button" data-search-toggle aria-expanded="false" aria-controls="search-row" aria-label="Search headlines">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
       </button>
@@ -36,11 +43,18 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
       <label class="visually-hidden" for="search">Search headlines</label>
       <input id="search" type="search" placeholder="Search headlines" autocomplete="off" enterkeyhint="search" />
     </div>
-    <div class="chips" role="group" aria-label="Topic">
+    <div class="segmented" role="group" aria-label="Topic">
       <button type="button" class="chip" data-filter="topic" value="all" aria-pressed="true">All</button>
-      {topics.map(([value, label]) => <button type="button" class="chip" data-filter="topic" value={value} aria-pressed="false">{label}</button>)}
+      {
+        topics.map(([value, label]) => (
+          <button type="button" class="chip" data-filter="topic" value={value} aria-pressed="false">
+            <span class="dot" data-kind={value} aria-hidden="true"></span>
+            {label}
+          </button>
+        ))
+      }
     </div>
-    <div class="chips chips-small" role="group" aria-label="Region">
+    <div class="regions" role="group" aria-label="Region">
       <button type="button" class="chip" data-filter="region" value="all" aria-pressed="true">All regions</button>
       {regions.map(([value, label]) => <button type="button" class="chip" data-filter="region" value={value} aria-pressed="false">{label}</button>)}
     </div>
@@ -54,6 +68,7 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
       stories.length === 0 ? (
         <p class="empty">No stories yet. The next hourly update will fill this page.</p>
       ) : (
+        <h2 class="section-label">Latest stories</h2>
         <div class="stories" data-story-list aria-busy="true">
           {stories.map((story) => <StoryCard story={story} now={now} />)}
         </div>
@@ -71,41 +86,13 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
 </script>
 
 <style>
-  .top {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: max(8px, env(safe-area-inset-top)) var(--gutter) 8px;
-  }
-
-  .top-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 1.25rem;
-    letter-spacing: -0.01em;
-  }
-
-  .updated {
-    margin: 0 0 0 auto;
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-  }
-
   .icon-button {
     display: grid;
     place-items: center;
+    flex: none;
     width: 44px;
     height: 44px;
-    margin-right: -10px;
+    margin: 0 -8px 0 auto;
     border: 0;
     border-radius: 50%;
     background: transparent;
@@ -113,61 +100,130 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
     cursor: pointer;
   }
 
+  .icon-button[aria-expanded='true'] {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
   .search-row {
     max-width: 720px;
-    margin: 4px auto 0;
+    margin: 8px auto 0;
   }
 
   .search-row input {
     width: 100%;
     min-height: 44px;
-    padding: 8px 14px;
+    padding: 8px 16px;
     font: inherit;
     font-size: 1rem;
     color: var(--text);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
   }
 
-  .chips {
+  .search-row input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  /* Topic: one segmented control. */
+  .segmented {
     display: flex;
-    gap: 8px;
     max-width: 720px;
-    margin: 8px auto 0;
+    margin: 10px auto 0;
+    padding: 3px;
+    background: var(--surface-2);
+    border-radius: 14px;
+  }
+
+  .segmented .chip {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 0 10px;
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .segmented .chip[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--raised);
+    box-shadow: var(--shadow);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot[data-kind='finance'] {
+    background: var(--finance);
+  }
+
+  .dot[data-kind='ai'] {
+    background: var(--ai);
+  }
+
+  /* Region: a light, scrollable row; the visible pill is smaller than its 44 px tap area. */
+  .regions {
+    display: flex;
+    gap: 2px;
+    max-width: 720px;
+    margin: 2px auto 0;
     overflow-x: auto;
     scrollbar-width: none;
     margin-inline: calc(-1 * var(--gutter));
-    padding-inline: var(--gutter);
+    padding-inline: calc(var(--gutter) - 10px);
   }
 
-  .chips::-webkit-scrollbar {
+  .regions::-webkit-scrollbar {
     display: none;
   }
 
-  .chip {
+  .regions .chip {
+    position: relative;
+    isolation: isolate;
     flex: none;
     min-height: 44px;
-    padding: 0 16px;
+    padding: 0 12px;
     font: inherit;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
     cursor: pointer;
   }
 
-  .chip[aria-pressed='true'] {
-    color: var(--bg);
-    background: var(--text);
-    border-color: var(--text);
+  .regions .chip::before {
+    content: '';
+    position: absolute;
+    inset: 7px 0;
+    z-index: -1;
+    border-radius: 999px;
+    transition: background-color 0.15s;
   }
 
-  .chips-small .chip {
-    font-size: 0.875rem;
-    padding: 0 12px;
+  .regions .chip[aria-pressed='true'] {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .regions .chip[aria-pressed='true']::before {
+    background: var(--accent-soft);
   }
 
   .stories {
@@ -189,7 +245,7 @@ const regions = Object.entries(REGION_LABELS) as [Region, string][];
   }
 
   @media (min-width: 720px) {
-    .chips {
+    .regions {
       margin-inline: auto;
       padding-inline: 0;
     }

@@ -14,9 +14,16 @@ const groups = (Object.keys(GROUP_LABELS) as InstrumentGroup[])
 ---
 
 <Base title="Markets · Daily News" description="Delayed daily moves for key indices, AI stocks, currencies, commodities and crypto." active="markets">
-  <header class="top">
-    <h1>Markets</h1>
-    {markets && <p class="updated">Delayed · {formatAsOf(markets.generatedAt)}</p>}
+  <header class="page-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 16l5-5 4 4 7-7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </span>
+      <div class="brand-text">
+        <h1>Markets</h1>
+        {markets && <p class="brand-sub updated">Delayed · {formatAsOf(markets.generatedAt)}</p>}
+      </div>
+    </div>
   </header>
   <main>
     {
@@ -25,8 +32,8 @@ const groups = (Object.keys(GROUP_LABELS) as InstrumentGroup[])
       ) : (
         groups.map((g) => (
           <section aria-labelledby={`group-${g.group}`}>
-            <h2 id={`group-${g.group}`}>{g.label}</h2>
-            {g.rows.map((m) => <MarketRow instrument={m} />)}
+            <h2 class="section-label" id={`group-${g.group}`}>{g.label}</h2>
+            <div class="group">{g.rows.map((m) => <MarketRow instrument={m} />)}</div>
           </section>
         ))
       )
@@ -38,40 +45,24 @@ const groups = (Object.keys(GROUP_LABELS) as InstrumentGroup[])
 </Base>
 
 <style>
-  .top {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: max(14px, env(safe-area-inset-top)) var(--gutter) 12px;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 1.25rem;
-  }
-
-  .updated {
-    margin: 0 0 0 auto;
-    font-size: 0.8125rem;
-    color: var(--text-muted);
+  .page-header {
+    padding-bottom: 10px;
   }
 
   section + section {
-    margin-top: 20px;
+    margin-top: 22px;
   }
 
-  h2 {
-    margin: 8px 0 0;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
+  .group {
+    padding: 0 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .group > :global(.row:last-child) {
+    border-bottom: 0;
   }
 
   .empty,

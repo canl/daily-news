@@ -10,6 +10,11 @@ interface Props {
 
 const { story, now } = Astro.props;
 const more = story.alsoReportedBy.length;
+
+// A steady colour per publisher for its initial badge, from a set that keeps white text readable.
+const BADGE_COLOURS = ['#3b4fd8', '#047857', '#6d28d9', '#b42318', '#0e7490', '#9a3412', '#1d4ed8', '#7e22ce', '#be185d', '#4d7c0f'];
+const hash = [...story.source].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
 ---
 
 <article
@@ -18,26 +23,35 @@ const more = story.alsoReportedBy.length;
   data-region={story.region}
   data-search={`${story.title} ${story.source} ${story.alsoReportedBy.join(' ')}`.toLowerCase()}
 >
+  <p class="card-top">
+    <span class="badge" style={`background:${badge}`} aria-hidden="true">{story.source.charAt(0)}</span>
+    <span class="source">{story.source}</span>
+    {more > 0 && <span class="more">+{more} more {more === 1 ? 'source' : 'sources'}</span>}
+    <time datetime={story.publishedAt} data-relative>{relativeTime(story.publishedAt, now)}</time>
+  </p>
   <h2 class="card-title">
     <a href={story.url} target="_blank" rel="noopener noreferrer">{story.title}</a>
   </h2>
   {story.snippet && <p class="card-snippet">{story.snippet}</p>}
-  <p class="card-meta">
-    <span class="source">{story.source}</span>
-    {more > 0 && <span class="more">+{more} more {more === 1 ? 'source' : 'sources'}</span>}
+  <p class="card-tags">
     <span class="tag" data-kind={story.topic}>{TOPIC_LABELS[story.topic]}</span>
-    <span class="tag">{REGION_LABELS[story.region]}</span>
-    <time datetime={story.publishedAt} data-relative>{relativeTime(story.publishedAt, now)}</time>
+    <span class="region">{REGION_LABELS[story.region]}</span>
   </p>
 </article>
 
 <style>
   .card {
     position: relative;
-    padding: 14px 16px;
+    padding: 14px 16px 12px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .card:active {
+    transform: scale(0.99);
   }
 
   .card:focus-within {
@@ -45,11 +59,51 @@ const more = story.alsoReportedBy.length;
     outline-offset: 2px;
   }
 
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    min-width: 0;
+  }
+
+  .badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .source {
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .more {
+    white-space: nowrap;
+  }
+
+  time {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
   .card-title {
     margin: 0;
     font-size: 1.0625rem;
     line-height: 1.35;
-    font-weight: 600;
+    font-weight: 650;
+    letter-spacing: -0.01em;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -82,33 +136,28 @@ const more = story.alsoReportedBy.length;
     overflow: hidden;
   }
 
-  .card-meta {
+  .card-tags {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 4px 10px;
+    gap: 8px;
     margin: 10px 0 0;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
   }
 
-  .source {
+  .tag {
+    padding: 2px 9px;
+    border-radius: 999px;
     font-weight: 600;
-    color: var(--text);
   }
 
-  .tag {
-    padding: 1px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
+  .tag[data-kind='finance'] {
+    color: var(--finance);
+    background: var(--finance-soft);
   }
 
   .tag[data-kind='ai'] {
-    color: var(--accent);
-    border-color: currentColor;
-  }
-
-  time {
-    margin-left: auto;
+    color: var(--ai);
+    background: var(--ai-soft);
   }
 </style>

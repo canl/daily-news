@@ -25,7 +25,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     z-index: 20;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    background: var(--bg);
+    background: var(--header-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    backdrop-filter: saturate(180%) blur(16px);
     border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -44,5 +46,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   a[aria-current='page'] {
     color: var(--accent);
+    font-weight: 600;
+  }
+
+  svg {
+    padding: 3px 16px;
+    box-sizing: content-box;
+    border-radius: 999px;
+  }
+
+  a[aria-current='page'] svg {
+    background: var(--accent-soft);
   }
 </style>

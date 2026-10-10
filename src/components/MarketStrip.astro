@@ -32,9 +32,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(132px, 1fr));
-    gap: 8px;
-    margin: 0 calc(-1 * var(--gutter)) 16px;
-    padding: 0 var(--gutter);
+    gap: 10px;
+    margin: 0 calc(-1 * var(--gutter)) 18px;
+    padding: 2px var(--gutter) 4px;
     overflow-x: auto;
     scrollbar-width: none;
     color: inherit;
@@ -47,16 +47,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .tile {
     display: grid;
-    gap: 2px;
-    padding: 10px 12px;
+    gap: 4px;
+    padding: 12px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
     font-variant-numeric: tabular-nums;
   }
 
   .name {
     font-size: 0.75rem;
+    font-weight: 500;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -64,30 +66,38 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .price {
-    font-weight: 600;
-    font-size: 0.9375rem;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
   }
 
   .pct {
-    font-size: 0.8125rem;
+    justify-self: start;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   [data-dir='up'] .pct {
     color: var(--up);
+    background: var(--up-soft);
   }
 
   [data-dir='down'] .pct {
     color: var(--down);
+    background: var(--down-soft);
   }
 
   [data-dir='flat'] .pct {
     color: var(--text-muted);
+    background: var(--surface-2);
   }
 
   @media (min-width: 720px) {
     .strip {
       margin-inline: 0;
-      padding: 0;
+      padding-inline: 0;
     }
   }
 </style>
