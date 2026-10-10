@@ -106,3 +106,14 @@ describe('dedupe', () => {
     expect(out[0]).toMatchObject({ source: 'A', alsoReportedBy: ['B'] });
   });
 });
+
+describe('feed stats', () => {
+  it('reports parsed and kept counts per feed', async () => {
+    const { stats } = await buildNews(feeds, stub(), now);
+    expect(stats).toEqual([
+      { source: 'Example Business', url: 'https://feeds.test/rss2', parsed: 4, kept: 2 },
+      { source: 'Example AI', url: 'https://feeds.test/atom', parsed: 2, kept: 2 },
+      { source: 'Example Asia', url: 'https://feeds.test/rdf', parsed: 1, kept: 1 },
+    ]);
+  });
+});

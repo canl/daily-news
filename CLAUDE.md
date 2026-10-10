@@ -5,7 +5,8 @@ Read `INTENT.md` first: it says what this project is for and what it must not do
 ## Stack
 
 - Node 22, TypeScript (strict), Astro 7 with static output.
-- Vitest for unit and contract tests in `tests/`.
+- Vitest for unit and contract tests in `tests/`; Playwright browser tests in `e2e/`.
+- In this cloud sandbox, run Playwright with `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
 - Hosted on GitHub Pages under the base path `/daily-news`; always build URLs from `import.meta.env.BASE_URL`.
 
 ## Commands
@@ -16,6 +17,8 @@ npm run dev       # local dev server
 npm run typecheck # astro sync + tsc
 npm test          # vitest
 npm run build     # static site into dist/
+npm run fetch:news # fetch real feeds into public/data/v1/news.json
+npm run test:e2e  # Playwright at phone size, built from tests/fixtures/news.sample.json
 ```
 
 Run typecheck, test and build before every commit; CI runs the same three.

@@ -15,4 +15,4 @@ npm ci
 npm run dev
 ```
 
-Checks: `npm run typecheck`, `npm test`, `npm run build`.
+Checks: `npm run typecheck`, `npm test`, `npm run build`, and `npm run test:e2e` for browser tests (Playwright; builds from `tests/fixtures/news.sample.json`).

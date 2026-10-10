@@ -14,13 +14,15 @@
     "typecheck": "astro sync && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "fetch:news": "tsx scripts/fetch-news.ts"
+    "fetch:news": "tsx scripts/fetch-news.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "astro": "7.3.8",
     "fast-xml-parser": "5.11.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "@types/node": "22.20.5",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
