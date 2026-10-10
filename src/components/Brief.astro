@@ -84,10 +84,9 @@ const topics = (['finance', 'ai'] as Topic[])
   .brief {
     position: relative;
     margin-bottom: 20px;
-    background:
-      linear-gradient(180deg, var(--accent-soft), transparent 120px),
-      var(--surface);
+    background: var(--surface);
     border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -128,18 +127,21 @@ const topics = (['finance', 'ai'] as Topic[])
     flex: none;
     width: 26px;
     height: 26px;
-    border-radius: 8px;
-    color: #fff;
-    background: linear-gradient(135deg, #3b4fd8, #7c3aed);
+    border-radius: var(--radius-sm);
+    color: #000;
+    background: var(--accent);
   }
 
   h2 {
     margin: 0;
-    font-size: 1.0625rem;
-    letter-spacing: -0.01em;
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .badge {
+    font-family: var(--mono);
     margin-left: auto;
     padding: 2px 8px;
     font-size: 0.6875rem;
@@ -147,7 +149,7 @@ const topics = (['finance', 'ai'] as Topic[])
     color: var(--accent);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     white-space: nowrap;
   }
 
@@ -164,6 +166,7 @@ const topics = (['finance', 'ai'] as Topic[])
   }
 
   h3 {
+    font-family: var(--mono);
     display: inline-block;
     margin: 4px 0 0;
     padding: 2px 9px;
@@ -171,7 +174,7 @@ const topics = (['finance', 'ai'] as Topic[])
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
   }
 
   h3[data-kind='finance'] {
@@ -225,12 +228,13 @@ const topics = (['finance', 'ai'] as Topic[])
     margin: 8px 0 0;
     padding: 10px 12px;
     background: var(--surface-2);
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     font-size: 0.875rem;
     line-height: 1.45;
   }
 
   .insight dt {
+    font-family: var(--mono);
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -259,12 +263,13 @@ const topics = (['finance', 'ai'] as Topic[])
   }
 
   .sources span {
+    font-family: var(--mono);
     padding: 3px 10px;
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--accent);
     background: var(--accent-soft);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
   }
 
   .note {

@@ -1,51 +1,30 @@
 :root {
-  color-scheme: light dark;
-  --bg: #f3f4f7;
-  --surface: #ffffff;
-  --surface-2: #eceef3;
-  --text: #11131a;
-  --text-muted: #5a6172;
-  --border: #e3e6ec;
-  --accent: #3b4fd8;
-  --accent-soft: #e9ecfd;
-  --finance: #047857;
-  --finance-soft: #e3f6ee;
-  --ai: #6d28d9;
-  --ai-soft: #f0eafd;
-  --up: #0b7a52;
-  --up-soft: #e2f5ec;
-  --down: #c0302a;
-  --down-soft: #fdecea;
-  --header-bg: rgb(243 244 247 / 0.86);
-  --raised: #ffffff;
-  --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 2px 8px rgb(16 24 40 / 0.05);
-  --radius: 16px;
+  /* A dark, terminal-inspired theme: black panels, amber accents, monospace figures. */
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #0d0d0d;
+  --surface-2: #171717;
+  --text: #ececec;
+  --text-muted: #a3a3a3;
+  --border: #2b2b2b;
+  --accent: #ff9f1c;
+  --accent-soft: #2e1d06;
+  --finance: #ffb340;
+  --finance-soft: #2e1d06;
+  --ai: #5ac8fa;
+  --ai-soft: #0a2533;
+  --up: #3ddc97;
+  --up-soft: #0b2a1d;
+  --down: #ff5c5c;
+  --down-soft: #331010;
+  --header-bg: rgb(0 0 0 / 0.9);
+  --raised: #2b2b2b;
+  --shadow: none;
+  --radius: 4px;
+  --radius-sm: 3px;
   --gutter: 16px;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0d12;
-    --surface: #161922;
-    --surface-2: #1f2330;
-    --text: #eceef3;
-    --text-muted: #a1a8b8;
-    --border: #262b38;
-    --accent: #8fa0ff;
-    --accent-soft: #232a4d;
-    --finance: #5fd4a6;
-    --finance-soft: #12332a;
-    --ai: #c4a8ff;
-    --ai-soft: #2b2145;
-    --up: #4fd39f;
-    --up-soft: #123227;
-    --down: #ff8a80;
-    --down-soft: #3a1a1c;
-    --header-bg: rgb(11 13 18 / 0.86);
-    --raised: #343b4f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
-  }
 }
 
 *,
@@ -93,9 +72,9 @@ a {
   top: 0;
   z-index: 10;
   background: var(--header-bg);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  backdrop-filter: saturate(180%) blur(16px);
-  border-bottom: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--accent);
   padding: max(10px, env(safe-area-inset-top)) var(--gutter) 6px;
 }
 
@@ -113,10 +92,9 @@ a {
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 10px;
-  color: #fff;
-  background: linear-gradient(135deg, #3b4fd8, #7c3aed);
-  box-shadow: 0 2px 6px rgb(59 79 216 / 0.35);
+  border-radius: var(--radius-sm);
+  color: #000;
+  background: var(--accent);
 }
 
 .brand-text {
@@ -132,6 +110,7 @@ a {
 
 .brand-sub {
   margin: 0;
+  font-family: var(--mono);
   font-size: 0.75rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -141,9 +120,10 @@ a {
 
 .section-label {
   margin: 0 0 8px;
+  font-family: var(--mono);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--accent);
 }

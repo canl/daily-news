@@ -60,6 +60,7 @@ const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
   }
 
   .card-top {
+    font-family: var(--mono);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -75,7 +76,7 @@ const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
     place-items: center;
     width: 22px;
     height: 22px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     color: #fff;
     font-size: 0.75rem;
     font-weight: 700;
@@ -83,7 +84,8 @@ const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
 
   .source {
     font-weight: 600;
-    color: var(--text);
+    color: var(--accent);
+    text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -137,6 +139,7 @@ const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
   }
 
   .card-tags {
+    font-family: var(--mono);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -147,7 +150,7 @@ const badge = BADGE_COLOURS[hash % BADGE_COLOURS.length];
 
   .tag {
     padding: 2px 9px;
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
   }
 

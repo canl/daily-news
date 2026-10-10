@@ -5,7 +5,7 @@
   "start_url": "/daily-news/",
   "scope": "/daily-news/",
   "display": "standalone",
-  "background_color": "#f3f4f7",
-  "theme_color": "#3b4fd8",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [{ "src": "/daily-news/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }
