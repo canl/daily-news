@@ -1,0 +1,46 @@
+name: Data check
+
+# Fetches the real feeds and market prices and reports what loads. Informational: it never blocks a merge.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/pipeline/**'
+      - 'scripts/fetch-*.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run fetch:news 2>&1 | tee news.log
+      - run: npm run fetch:markets 2>&1 | tee markets.log
+        if: always()
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '### News feeds'
+            echo '```'
+            cat news.log 2>/dev/null || echo 'did not run'
+            echo '```'
+            echo '### Market prices'
+            echo '```'
+            cat markets.log 2>/dev/null || echo 'did not run'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: data-v1
+          path: public/data/v1/
+          if-no-files-found: ignore

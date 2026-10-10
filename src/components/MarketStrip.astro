@@ -1,0 +1,93 @@
+---
+import { direction, formatPrice } from '../lib/format';
+import { loadMarkets } from '../lib/markets-data';
+
+/** The first four stock indices, linking to the Markets page. Renders nothing when there is no market data. */
+const markets = loadMarkets();
+const indices = (markets?.instruments ?? []).filter((m) => m.group === 'indices').slice(0, 4);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+{
+  indices.length > 0 && (
+    <a class="strip" href={`${base}/markets/`} aria-label="Market moves, open the Markets page">
+      {indices.map((m) => {
+        const dir = direction(m);
+        return (
+          <span class="tile" data-dir={dir}>
+            <span class="name">{m.name}</span>
+            <span class="price">{formatPrice(m)}</span>
+            <span class="pct">
+              <span aria-hidden="true">{dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■'}</span>
+              {` ${m.changePct > 0 ? '+' : m.changePct < 0 ? '−' : ''}${Math.abs(m.changePct).toFixed(2)}%`}
+            </span>
+          </span>
+        );
+      })}
+    </a>
+  )
+}
+
+<style>
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(132px, 1fr));
+    gap: 8px;
+    margin: 0 calc(-1 * var(--gutter)) 16px;
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scrollbar-width: none;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tile {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .price {
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .pct {
+    font-size: 0.8125rem;
+  }
+
+  [data-dir='up'] .pct {
+    color: var(--up);
+  }
+
+  [data-dir='down'] .pct {
+    color: var(--down);
+  }
+
+  [data-dir='flat'] .pct {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 720px) {
+    .strip {
+      margin-inline: 0;
+      padding: 0;
+    }
+  }
+</style>

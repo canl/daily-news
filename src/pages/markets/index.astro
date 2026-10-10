@@ -1,0 +1,91 @@
+---
+import MarketRow from '../../components/MarketRow.astro';
+import Base from '../../layouts/Base.astro';
+import { formatAsOf } from '../../lib/format';
+import { loadMarkets } from '../../lib/markets-data';
+import { GROUP_LABELS } from '../../pipeline/instruments';
+import type { InstrumentGroup } from '../../lib/types';
+
+const markets = loadMarkets();
+const instruments = markets?.instruments ?? [];
+const groups = (Object.keys(GROUP_LABELS) as InstrumentGroup[])
+  .map((group) => ({ group, label: GROUP_LABELS[group], rows: instruments.filter((m) => m.group === group) }))
+  .filter((g) => g.rows.length > 0);
+---
+
+<Base title="Markets · Daily News" description="Delayed daily moves for key indices, AI stocks, currencies, commodities and crypto." active="markets">
+  <header class="top">
+    <h1>Markets</h1>
+    {markets && <p class="updated">Delayed · {formatAsOf(markets.generatedAt)}</p>}
+  </header>
+  <main>
+    {
+      groups.length === 0 ? (
+        <p class="empty">No market data yet. The next hourly update will fill this page.</p>
+      ) : (
+        groups.map((g) => (
+          <section aria-labelledby={`group-${g.group}`}>
+            <h2 id={`group-${g.group}`}>{g.label}</h2>
+            {g.rows.map((m) => <MarketRow instrument={m} />)}
+          </section>
+        ))
+      )
+    }
+    <p class="foot">
+      Prices are delayed by 15 minutes or more and are for information only. Tap a row for its 30-day chart.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: max(14px, env(safe-area-inset-top)) var(--gutter) 12px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .updated {
+    margin: 0 0 0 auto;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  section + section {
+    margin-top: 20px;
+  }
+
+  h2 {
+    margin: 8px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  .empty,
+  .foot {
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .empty {
+    padding: 32px 0;
+  }
+
+  .foot {
+    margin: 24px 0 8px;
+    font-size: 0.8125rem;
+  }
+</style>

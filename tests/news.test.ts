@@ -110,10 +110,11 @@ describe('dedupe', () => {
 describe('feed stats', () => {
   it('reports parsed and kept counts per feed', async () => {
     const { stats } = await buildNews(feeds, stub(), now);
-    expect(stats).toEqual([
-      { source: 'Example Business', url: 'https://feeds.test/rss2', parsed: 4, kept: 2 },
-      { source: 'Example AI', url: 'https://feeds.test/atom', parsed: 2, kept: 2 },
-      { source: 'Example Asia', url: 'https://feeds.test/rdf', parsed: 1, kept: 1 },
+    expect(stats.map(({ sample: _sample, ...rest }) => rest)).toEqual([
+      { source: 'Example Business', url: 'https://feeds.test/rss2', parsed: 4, kept: 2, dropped: { noTitle: 0, noUrl: 0, noDate: 1, outsideWindow: 1 } },
+      { source: 'Example AI', url: 'https://feeds.test/atom', parsed: 2, kept: 2, dropped: { noTitle: 0, noUrl: 0, noDate: 0, outsideWindow: 0 } },
+      { source: 'Example Asia', url: 'https://feeds.test/rdf', parsed: 1, kept: 1, dropped: { noTitle: 0, noUrl: 0, noDate: 0, outsideWindow: 0 } },
     ]);
+    expect(stats[0]!.sample?.title).toBe('Fed holds rates steady as inflation cools');
   });
 });

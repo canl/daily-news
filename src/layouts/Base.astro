@@ -1,12 +1,14 @@
 ---
+import TabBar from '../components/TabBar.astro';
 import '../styles/global.css';
 
 interface Props {
   title: string;
   description?: string;
+  active: 'today' | 'markets';
 }
 
-const { title, description = 'The latest financial and AI news from around the world.' } = Astro.props;
+const { title, description = 'The latest financial and AI news from around the world.', active } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
@@ -24,5 +26,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   </head>
   <body>
     <slot />
+    <TabBar active={active} />
   </body>
 </html>

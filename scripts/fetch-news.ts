@@ -13,7 +13,8 @@ const { file, failures, stats } = await buildNews(FEEDS);
 
 for (const f of failures) console.warn(`warn: skipped ${f.source} (${f.url}): ${f.error}`);
 for (const s of stats.filter((s) => s.kept === 0)) {
-  console.warn(`warn: ${s.source} (${s.url}) returned ${s.parsed} items but none were usable or recent`);
+  console.warn(`warn: ${s.source} (${s.url}) returned ${s.parsed} items but none were usable or recent: ${JSON.stringify(s.dropped)}`);
+  if (s.sample) console.warn(`  first item: ${JSON.stringify({ ...s.sample, description: s.sample.description.slice(0, 80) })}`);
 }
 const read = FEEDS.length - failures.length;
 console.log(`Read ${read}/${FEEDS.length} feeds, ${file.stories.length} stories after dedupe.`);

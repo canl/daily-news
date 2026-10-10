@@ -2,7 +2,7 @@ import { SCHEMA_VERSION, type NewsFile, type Story } from '../lib/types';
 import { dedupe } from './dedupe';
 import type { FeedConfig } from './feeds';
 import { storyId, toPlainText, truncate } from './normalize';
-import { parseFeed } from './parse';
+import { parseFeed, type RawItem } from './parse';
 
 export const WINDOW_HOURS = 48;
 export const MAX_STORIES = 400;
@@ -32,6 +32,10 @@ export interface FeedStats {
   parsed: number;
   /** Items kept: valid and inside the time window. */
   kept: number;
+  /** Why the other items were dropped. */
+  dropped: { noTitle: number; noUrl: number; noDate: number; outsideWindow: number };
+  /** The first item as parsed, to help diagnose a feed that keeps nothing. */
+  sample?: RawItem;
 }
 
 export interface BuildNewsResult {
@@ -40,15 +44,26 @@ export interface BuildNewsResult {
   stats: FeedStats[];
 }
 
-function toStories(feed: FeedConfig, xml: string, now: Date): { parsed: number; stories: Story[] } {
+function toStories(
+  feed: FeedConfig,
+  xml: string,
+  now: Date,
+): { parsed: number; stories: Story[]; dropped: FeedStats['dropped']; sample?: RawItem } {
   const oldest = now.getTime() - WINDOW_HOURS * 3_600_000;
   const newest = now.getTime() + 10 * 60_000; // tolerate small clock skew
   const items = parseFeed(xml);
+  const dropped = { noTitle: 0, noUrl: 0, noDate: 0, outsideWindow: 0 };
   const stories = items
-    .filter((item) => item.title && /^https?:\/\//.test(item.url) && item.publishedAt)
     .filter((item) => {
-      const t = Date.parse(item.publishedAt);
-      return t >= oldest && t <= newest;
+      if (!item.title) dropped.noTitle++;
+      else if (!/^https?:\/\//.test(item.url)) dropped.noUrl++;
+      else if (!item.publishedAt) dropped.noDate++;
+      else {
+        const t = Date.parse(item.publishedAt);
+        if (t >= oldest && t <= newest) return true;
+        dropped.outsideWindow++;
+      }
+      return false;
     })
     .map((item) => ({
       id: storyId(item.title),
@@ -61,7 +76,7 @@ function toStories(feed: FeedConfig, xml: string, now: Date): { parsed: number; 
       snippet: truncate(toPlainText(item.description)),
       alsoReportedBy: [],
     }));
-  return { parsed: items.length, stories };
+  return { parsed: items.length, stories, dropped, sample: items[0] };
 }
 
 /** Fetches every feed in parallel; a feed that fails is reported and skipped. */
@@ -79,7 +94,8 @@ export async function buildNews(
     const feed = feeds[i]!;
     if (result.status === 'fulfilled') {
       stories.push(...result.value.stories);
-      stats.push({ source: feed.source, url: feed.url, parsed: result.value.parsed, kept: result.value.stories.length });
+      const { parsed, stories: kept, dropped, sample } = result.value;
+      stats.push({ source: feed.source, url: feed.url, parsed, kept: kept.length, dropped, sample });
     } else failures.push({ source: feed.source, url: feed.url, error: String(result.reason?.message ?? result.reason) });
   });
 
