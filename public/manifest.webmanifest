@@ -1,0 +1,11 @@
+{
+  "name": "Daily News",
+  "short_name": "Daily News",
+  "description": "The latest financial and AI news from around the world.",
+  "start_url": "/daily-news/",
+  "scope": "/daily-news/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f5fd1",
+  "icons": [{ "src": "/daily-news/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
