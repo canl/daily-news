@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { NewsFile, SummaryFile } from '../src/lib/types';
 import { validateSummaryFile } from '../src/lib/validate';
 import type { MarketsFile } from '../src/lib/types';
-import { buildSummary, checkBullets, headlinesHash, marketLines, selectHeadlines, SUMMARY_MODEL, summaryDue, type CreateMessage } from '../src/pipeline/summary';
+import { buildSummary, checkBullets, headlinesHash, lastSummarySlot, marketLines, selectHeadlines, SUMMARY_MODEL, summaryDue, type CreateMessage } from '../src/pipeline/summary';
 
 const news: NewsFile = JSON.parse(readFileSync(new URL('./fixtures/news.sample.json', import.meta.url), 'utf8'));
 const sample: SummaryFile = JSON.parse(readFileSync(new URL('./fixtures/summary.sample.json', import.meta.url), 'utf8'));
@@ -165,16 +165,22 @@ describe('buildSummary', () => {
 describe('summaryDue', () => {
   const at = (iso: string) => ({ ...sample, generatedAt: iso });
 
-  it('is due with no previous summary, or once it is 4 hours old', () => {
-    expect(summaryDue(null, now)).toBe(true);
-    expect(summaryDue(at('2026-10-10T08:00:00Z'), now)).toBe(true);
-    expect(summaryDue(at('2026-10-10T06:00:00Z'), now)).toBe(true);
+  it('finds the latest summary time, before the London open or after the close', () => {
+    expect(lastSummarySlot(new Date('2026-10-10T12:00:00Z')).toISOString()).toBe('2026-10-10T06:00:00.000Z');
+    expect(lastSummarySlot(new Date('2026-10-10T17:07:00Z')).toISOString()).toBe('2026-10-10T17:00:00.000Z');
+    expect(lastSummarySlot(new Date('2026-10-10T03:00:00Z')).toISOString()).toBe('2026-10-09T17:00:00.000Z');
   });
 
-  it('is not due within 4 hours, allowing a scheduled run to start a few minutes early', () => {
-    expect(summaryDue(at('2026-10-10T09:00:00Z'), now)).toBe(false);
-    expect(summaryDue(at('2026-10-10T08:10:00Z'), now)).toBe(true);
-    expect(summaryDue(at('2026-10-10T08:20:00Z'), now)).toBe(false);
+  it('is due with no previous summary, or none since the latest summary time', () => {
+    expect(summaryDue(null, now)).toBe(true);
+    expect(summaryDue(at('2026-10-10T05:07:00Z'), now)).toBe(true);
+    expect(summaryDue(at('2026-10-09T17:07:00Z'), now)).toBe(true);
+  });
+
+  it('is not due again until the next summary time', () => {
+    expect(summaryDue(at('2026-10-10T06:07:00Z'), now)).toBe(false);
+    expect(summaryDue(at('2026-10-10T06:07:00Z'), new Date('2026-10-10T16:59:00Z'))).toBe(false);
+    expect(summaryDue(at('2026-10-10T06:07:00Z'), new Date('2026-10-10T17:07:00Z'))).toBe(true);
   });
 });
 

@@ -9,7 +9,7 @@ import { loadMarkets } from '../src/lib/markets-data';
 import { loadNews } from '../src/lib/news-data';
 import { loadSummary } from '../src/lib/summary-data';
 import { validateSummaryFile } from '../src/lib/validate';
-import { buildSummary, SUMMARY_EVERY_HOURS, summaryDue } from '../src/pipeline/summary';
+import { buildSummary, SUMMARY_HOURS_UTC, summaryDue } from '../src/pipeline/summary';
 
 const OUT_DIR = 'public/data/v1';
 const OUT = `${OUT_DIR}/summary.json`;
@@ -31,7 +31,7 @@ if (!news) {
 const previous = existsSync(OUT) ? loadSummary(OUT) : null;
 // SUMMARY_FORCE=1 writes a new summary now, whatever the age of the previous one.
 if (!process.env.SUMMARY_FORCE && !summaryDue(previous, new Date())) {
-  console.log(`Kept the summary from ${previous!.generatedAt}; a new one is written every ${SUMMARY_EVERY_HOURS} hours.`);
+  console.log(`Kept the summary from ${previous!.generatedAt}; new ones are written after ${SUMMARY_HOURS_UTC.map((h) => `${String(h).padStart(2, '0')}:00`).join(' and ')} UTC.`);
   process.exit(0);
 }
 const client = new Anthropic();
