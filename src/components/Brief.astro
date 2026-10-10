@@ -41,7 +41,14 @@ const topics = (['finance', 'ai'] as Topic[])
             <ul>
               {bullets.map((b) => (
                 <li>
-                  <p>{b.text}</p>
+                  {b.why || b.impact ? (
+                    <dl class="what">
+                      <dt>What happened</dt>
+                      <dd>{b.text}</dd>
+                    </dl>
+                  ) : (
+                    <p>{b.text}</p>
+                  )}
                   {(b.why || b.impact) && (
                     <dl class="insight">
                       {b.why && (
@@ -206,6 +213,11 @@ const topics = (['finance', 'ai'] as Topic[])
     background: var(--text-muted);
   }
 
+  /* Line the dot up with the small "What happened" label. */
+  li:has(.what)::before {
+    top: 5px;
+  }
+
   [data-topic='finance'] li::before {
     background: var(--finance);
   }
@@ -219,6 +231,24 @@ const topics = (['finance', 'ai'] as Topic[])
     line-height: 1.5;
   }
 
+  .what {
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+
+  .what dd {
+    margin: 1px 0 0;
+  }
+
+  .what dt,
+  .insight dt {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
   .insight {
     display: grid;
     gap: 6px;
@@ -228,14 +258,6 @@ const topics = (['finance', 'ai'] as Topic[])
     border-radius: 12px;
     font-size: 0.875rem;
     line-height: 1.45;
-  }
-
-  .insight dt {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
   }
 
   .insight dd {
